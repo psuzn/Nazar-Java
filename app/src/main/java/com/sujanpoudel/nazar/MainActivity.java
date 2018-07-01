@@ -1,16 +1,21 @@
 package com.sujanpoudel.nazar;
 
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -71,15 +76,35 @@ public class MainActivity extends CameraActivity {
 
                     }
             };
+    View.OnClickListener onDetectionButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(MainActivity.this,"Detection will be implemented soon",Toast.LENGTH_SHORT).show();
+            Intent myintent = new Intent(MainActivity.this,Detection.class);
+            MainActivity.this.startActivity(myintent);
+        }
+    };
+    View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
+        }
+    };
     ArrayList<RadioButton>  sliderPageIndicator = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
         startColorAnimation();
         WizardPagerAdapter adapter = new WizardPagerAdapter();
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(adapter);
+
         pager.addOnPageChangeListener(onPageChangeListner);
+        findViewById(R.id.startClassification).setOnClickListener(onClassificationButtonClick);
+        findViewById(R.id.startDetection).setOnClickListener(onDetectionButtonClick);
+
         //for the buttom radiobuttons
         RadioGroup radioButtonGroup = findViewById(R.id.pageIndicator);
         int childs = radioButtonGroup.getChildCount();
@@ -93,9 +118,9 @@ public class MainActivity extends CameraActivity {
     void startColorAnimation(){
         final ImageView blurPreview = findViewById(R.id.colorOverlay);
         ValueAnimator anim = ValueAnimator.ofFloat(0, 1);   // animate from 0 to 1
-        anim.setDuration(8000);                              // for 300 ms
+        anim.setDuration(8000);                              // for 8000 ms
         anim.setRepeatMode(ValueAnimator.REVERSE);
-        anim.setRepeatCount(ValueAnimator.INFINITE);               // transition color
+        anim.setRepeatCount(ValueAnimator.INFINITE);
         anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener(){
             @Override public void onAnimationUpdate(ValueAnimator animation) {
                 blurPreview.setBackgroundColor(Color.HSVToColor(new float[]{ animation.getAnimatedFraction() * 360 , 0.7f,0.7f}));
@@ -103,10 +128,6 @@ public class MainActivity extends CameraActivity {
             }
         });
         anim.start();
-    }
-    @Override
-    protected  int getMainLayoutId(){
-        return  R.layout.activity_main;
     }
 
     @Override
@@ -127,4 +148,15 @@ public class MainActivity extends CameraActivity {
 
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("Nazar debug","pausing");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("Nazar debug","resumming");
+    }
 }

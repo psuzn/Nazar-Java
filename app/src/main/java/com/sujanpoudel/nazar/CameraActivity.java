@@ -1,6 +1,8 @@
 package com.sujanpoudel.nazar;
 
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.SurfaceTexture;
@@ -38,11 +40,11 @@ public abstract class CameraActivity extends android.app.Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(getMainLayoutId());
         if(havePermission())
         {
+            cameraPreviewImageView = getCameraPreviewImageView();
+            cameraPreviewImageView.setSurfaceTextureListener(this);
             Toast.makeText(this,"Camera and Storage Permission are granted.",Toast.LENGTH_SHORT).show();
-            setupCamera();
         }
         else
             this.requestPermission();
@@ -60,7 +62,8 @@ public abstract class CameraActivity extends android.app.Activity
                 this.requestPermission();
             else
             {
-                setupCamera();
+                cameraPreviewImageView = getCameraPreviewImageView();
+                cameraPreviewImageView.setSurfaceTextureListener(this);
                 Toast.makeText(this,"Camera and Storage Permission are granted.",Toast.LENGTH_SHORT).show();
             }
         }
@@ -70,8 +73,7 @@ public abstract class CameraActivity extends android.app.Activity
         Log.d("Nazar_Debug"," onsurfaceavialble");
         if(mCamera == null)
         {
-            Log.d("Nazar_Debug"," camera is null");
-            return;
+            setupCamera();
         }
         try {
             mCamera.setPreviewTexture(surface);
@@ -83,16 +85,26 @@ public abstract class CameraActivity extends android.app.Activity
     }
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        mCamera.stopPreview();
-        mCamera.release();
+        if(mCamera !=null)
+        {
+            mCamera.stopPreview();
+            mCamera.release();
+        }
+
         return true;
     }
 
     private void setupCamera(){
-        cameraPreviewImageView = getCameraPreviewImageView();
-        cameraPreviewImageView.setSurfaceTextureListener(this);
-
-        mCamera = Camera.open(chooseCamera());
+        try {
+            mCamera = Camera.open(chooseCamera());
+        }
+        catch (Exception e)
+        {
+            AlertDialog.Builder builder  = new AlertDialog.Builder(this);
+            Log.d("Nazar Debug","Couldn't connect with camera");
+            builder.setMessage("Couldn't connect with camera").show();
+            quitApp(-1);
+        }
 
         List<Camera.Size> mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
         int screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
@@ -115,12 +127,7 @@ public abstract class CameraActivity extends android.app.Activity
         previewHeight = mCamera.getParameters().getPreviewSize().height;
         previewWidth = mCamera.getParameters().getPreviewSize().width;
         onPreviewSizeChosen();
-        try {
-            mCamera.setPreviewTexture(cameraPreviewImageView.getSurfaceTexture());
-            mCamera.startPreview();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     private int chooseCamera() {
@@ -212,9 +219,39 @@ public abstract class CameraActivity extends android.app.Activity
         }
     }
     private void quitApp( int status){
+        Log.d("Nazar Debug","quitting");
         this.finishActivity(-1);
         System.exit(-1);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mCamera!=null)
+        {
+            mCamera.stopPreview();
+            mCamera.release();
+            mCamera = null;
+
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mCamera==null)
+        {
+            setupCamera();
+            mCamera.startPreview();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
 
@@ -224,8 +261,6 @@ public abstract class CameraActivity extends android.app.Activity
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
     }
-    protected abstract int getMainLayoutId();
     protected abstract TextureView getCameraPreviewImageView();
     protected abstract void onPreviewSizeChosen();
-    native void blur(Bitmap in,Bitmap out,int radius);
 }

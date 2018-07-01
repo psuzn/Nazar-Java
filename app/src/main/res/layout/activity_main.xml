@@ -103,6 +103,7 @@
                     android:textAlignment="center"
                     />
                 <Button
+                    android:id="@+id/startDetection"
                     android:layout_below="@id/sliderInfo"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
@@ -141,6 +142,7 @@
                     android:textAlignment="center"
                     tools:ignore="DuplicateIds" />
                 <Button
+                    android:id="@+id/startClassification"
                     android:layout_below="@id/sliderInfo"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
