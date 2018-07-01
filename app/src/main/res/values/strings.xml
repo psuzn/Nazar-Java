@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Nazar</string>
+    <string name="title_activity_home">home</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="leftarrow"><![CDATA[<]]></string>
+    <string name="detect_components_at_the_real_time">Detect components at the real time.</string>
+    <string name="detection">Detection</string>
+    <string name="start_detection">Start Detection</string>
+    <string name="classification">Classification</string>
+    <string name="identify_the_objects_nearby_you">Identify the objects nearby you.</string>
+    <string name="start_classification">Start Classification</string>
+</resources>
