@@ -12,6 +12,11 @@ Nazar is an app built with java for android implementation of proof of concept a
     <a href="https://play.google.com/store/apps/details?id=com.speks.nazar" target="_blank"><img src="http://i.imgur.com/D5B4zOT.png" height="75"/></a>
 </p>
 
+<p align="center">
+  <img alt="Classify" src="https://i.imgur.com/giENuoY.png" width="200" height="356" style="margin-left: 10px">
+  <img alt="Detect" src="https://i.imgur.com/1YoUhGI.png" width="200" height="356" style="margin-left: 10px">
+</p>
+
 ## Contributing
 
 1. Fork it (<https://github.com/psuzn/Nazar-Java/fork>)
