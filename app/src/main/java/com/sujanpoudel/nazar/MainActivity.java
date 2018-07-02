@@ -88,6 +88,8 @@ public class MainActivity extends CameraActivity {
         @Override
         public void onClick(View v) {
             Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
+            Intent myintent = new Intent(MainActivity.this,Classification.class);
+            MainActivity.this.startActivity(myintent);
         }
     };
     ArrayList<RadioButton>  sliderPageIndicator = new ArrayList<>();
