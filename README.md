@@ -11,3 +11,11 @@ Nazar is an app built with java for android implementation of proof of concept a
 <p align="center">
     <a href="https://play.google.com/store/apps/details?id=com.speks.nazar" target="_blank"><img src="http://i.imgur.com/D5B4zOT.png" height="75"/></a>
 </p>
+
+## Contributing
+
+1. Fork it (<https://github.com/psuzn/Nazar-Java/fork>)
+2. Create your feature branch (`git checkout -b feature/fooBar`)
+3. Commit your changes (`git commit -am 'Add some fooBar'`)
+4. Push to the branch (`git push origin feature/fooBar`)
+5. Create a new Pull Request
