@@ -3,10 +3,10 @@
     <string name="title_activity_home">home</string>
     <string name="title_activity_main2">Main2Activity</string>
     <string name="leftarrow"><![CDATA[<]]></string>
-    <string name="detect_components_at_the_real_time">Detect components at the real time.</string>
+    <string name="detect_components_at_the_real_time">Detect components in real-time with prediction percentage.</string>
     <string name="detection">Detection</string>
-    <string name="start_detection">Start Detection</string>
+    <string name="start_detection">Detect objects</string>
     <string name="classification">Classification</string>
-    <string name="identify_the_objects_nearby_you">Identify the objects nearby you.</string>
-    <string name="start_classification">Start Classification</string>
+    <string name="identify_the_objects_nearby_you">Classify and identify object on the camera frame.</string>
+    <string name="start_classification">Classify objects</string>
 </resources>

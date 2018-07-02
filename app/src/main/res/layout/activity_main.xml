@@ -28,20 +28,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="287dp"
                 android:layout_marginTop="10dp">
-                <TextView
-                        android:id="@+id/textView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:gravity="top|center_vertical"
-                        android:text="@string/app_name"
-                        android:textAlignment="center"
-                        android:textAllCaps="false"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                        android:textColor="@android:color/white"
-                        android:textSize="42sp"
-                        android:textStyle="bold"
-                        android:typeface="normal" />
 
                     <ImageView
                         android:id="@+id/logo"
@@ -54,12 +40,27 @@
                         android:src="@drawable/icon_lg" />
 
                     <TextView
+                            android:id="@+id/textView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:gravity="top|center_vertical"
+                            android:text="@string/app_name"
+                            android:textAlignment="center"
+                            android:textAllCaps="false"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                            android:textColor="@android:color/white"
+                            android:textSize="42sp"
+                            android:textStyle="bold"
+                            android:typeface="normal" />
+
+                    <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@id/logo"
                         android:layout_marginTop="10dp"
                         android:gravity="top|center_vertical"
-                        android:text="A helper app"
+                        android:text="Electronic Component Detection"
                         android:textAlignment="center"
                         android:textAllCaps="false"
                         android:textColor="@android:color/white"
