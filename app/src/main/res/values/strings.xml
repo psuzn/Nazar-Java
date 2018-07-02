@@ -9,4 +9,5 @@
     <string name="classification">Classification</string>
     <string name="identify_the_objects_nearby_you">Classify and identify object on the camera frame.</string>
     <string name="start_classification">Classify objects</string>
+    <string name="about_us"> © Team Speks</string>
 </resources>
