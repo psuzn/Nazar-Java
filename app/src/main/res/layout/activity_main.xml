@@ -70,10 +70,10 @@
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="295dp"
+            android:layout_height="350dp"
             android:layout_below="@id/header"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="30dp"
+            android:paddingBottom="30dp"
             android:layout_gravity="bottom"
             android:background="@color/pagerBackground">
 
@@ -159,12 +159,10 @@
             android:id="@+id/pageIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/pager"
+            android:layout_above="@id/aboutUs"
+            android:layout_marginBottom="-15dp"
             android:layout_centerHorizontal="true"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="-10dp"
             android:orientation="horizontal">
-
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -184,15 +182,15 @@
         </RadioGroup>
 
         <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/pageIndicator"
-        android:layout_marginTop="20dp"
-        android:gravity="bottom"
-        android:text="@string/about_us"
-        android:textAlignment="center"
-        android:textAllCaps="false"
-        android:textColor="@android:color/white"
-        android:textSize="18sp" />
+            android:id="@+id/aboutUs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:text="@string/about_us"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
     </RelativeLayout>
 </FrameLayout>
