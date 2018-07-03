@@ -15,6 +15,7 @@ Nazar is an app built with java for android implementation of proof of concept a
 <p align="center">
   <img alt="Classify" src="https://i.imgur.com/giENuoY.png" width="200" height="356" style="margin-left: 10px">
   <img alt="Detect" src="https://i.imgur.com/1YoUhGI.png" width="200" height="356" style="margin-left: 10px">
+  <img alt="Classify_camera" src="https://i.imgur.com/5H57Gfh.png" width="200" height="356" style="margin-left: 10px">
 </p>
 
 ## Contributing

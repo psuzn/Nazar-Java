@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextureView
+        android:id="@+id/camPreview1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Image view for Camera Preview" />
+
+    <ImageView
+        android:id="@+id/colorOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="100"
+        android:contentDescription="Image view for overlay color" />
+</FrameLayout>

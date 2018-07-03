@@ -63,9 +63,11 @@ public class MainActivity extends CameraActivity {
         getPreferences(); // important preferences should get first
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
+        startColorAnimation();
         WizardPagerAdapter adapter = new WizardPagerAdapter();
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(adapter);
+
         pager.addOnPageChangeListener(onPageChangeListner);
         findViewById(R.id.startClassification).setOnClickListener(onClassificationButtonClick);
         findViewById(R.id.startDetection).setOnClickListener(onDetectionButtonClick);
