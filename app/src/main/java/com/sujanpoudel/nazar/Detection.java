@@ -1,5 +1,6 @@
 package com.sujanpoudel.nazar;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -32,7 +33,6 @@ public class Detection extends CameraActivity {
 
     @Override
     protected TextureView getCameraPreviewImageView() {
-
         return findViewById(R.id.camPreview1);
     }
 
@@ -46,4 +46,5 @@ public class Detection extends CameraActivity {
     public void onPreviewFrame(byte[] data, Camera camera) {
         camera.addCallbackBuffer(data);
     }
+
 }

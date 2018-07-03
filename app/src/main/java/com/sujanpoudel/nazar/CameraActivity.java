@@ -2,6 +2,8 @@ package com.sujanpoudel.nazar;
 
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -48,7 +50,6 @@ public abstract class CameraActivity extends android.app.Activity
         {
             cameraPreviewImageView = getCameraPreviewImageView();
             cameraPreviewImageView.setSurfaceTextureListener(this);
-            Toast.makeText(this,"Camera and Storage Permission are granted.",Toast.LENGTH_SHORT).show();
         }
         else
             this.requestPermission();
@@ -81,6 +82,8 @@ public abstract class CameraActivity extends android.app.Activity
         if(mCamera == null)
         {
             setupCamera();
+            if(mCamera == null ) // mcamera is null when there is no camera
+                return;
         }
         try {
             mCamera.setPreviewTexture(surface);
@@ -103,14 +106,21 @@ public abstract class CameraActivity extends android.app.Activity
 
     private void setupCamera(){
         try {
-            mCamera = Camera.open(chooseCamera());
+            mCamera = Camera.open( chooseCamera() );
         }
         catch (Exception e)
         {
-            AlertDialog.Builder builder  = new AlertDialog.Builder(this);
+            new AlertDialog.Builder( this)
+                    .setTitle("Couldn't connect with camera")
+                    .setCancelable(false)
+                    .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            CameraActivity.this.quitApp(-1);
+                        }
+                    }).show();
             Log.d("Nazar Debug","Couldn't connect with camera");
-            builder.setMessage("Couldn't connect with camera").show();
-            quitApp(-1);
+            return;
         }
 
         List<Camera.Size> mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
@@ -152,22 +162,27 @@ public abstract class CameraActivity extends android.app.Activity
                 frontCameraIndex = i;
             }
         }
+        Log.d("Nazar Debug","frontcamindex:"+frontCameraIndex+" backcamindex:"+backCameraIndex);
         cameraIndex = (usecamera == Camera.CameraInfo.CAMERA_FACING_FRONT)? frontCameraIndex : backCameraIndex;
 
-        if(frontCameraIndex == -1 && backCameraIndex == -1 && cameraIndex ==-1)
+        if(frontCameraIndex == -1 && backCameraIndex == -1) // no any camera found
         {
-            Toast.makeText(this,"Couldn't connect with camera",Toast.LENGTH_LONG).show();
+            AlertDialog.Builder builder  = new AlertDialog.Builder(this);
+            builder.setMessage("Couldn't connect with camera").show();
             quitApp(1);
             return -1;
         }
         if(usecamera == Camera.CameraInfo.CAMERA_FACING_FRONT && frontCameraIndex == -1 ) //front camera selected but not found
         {
-            cameraIndex = backCameraIndex;
+            if(backCameraIndex != -1) //no front camera but has rear camera
+                cameraIndex = backCameraIndex;
             Toast.makeText(this,"Couldn't connect with front camera",Toast.LENGTH_LONG).show();
         }
         if(usecamera == Camera.CameraInfo.CAMERA_FACING_BACK && backCameraIndex ==-1) //rear camera selected but not found
         {
-            cameraIndex = frontCameraIndex;
+            if(frontCameraIndex != -1) // no rear camera but has front camera
+                cameraIndex = frontCameraIndex;
+
             Toast.makeText(this,"Couldn't connect with rear camera",Toast.LENGTH_LONG).show();
         }
         return  cameraIndex;
@@ -248,7 +263,8 @@ public abstract class CameraActivity extends android.app.Activity
         if(mCamera==null)
         {
             setupCamera();
-            mCamera.startPreview();
+            if(mCamera!=null) // mcamera will be null when there is no camera
+                mCamera.startPreview();
         }
     }
 

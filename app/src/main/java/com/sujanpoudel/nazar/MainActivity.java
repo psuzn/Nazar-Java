@@ -1,6 +1,7 @@
 package com.sujanpoudel.nazar;
 
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -161,4 +162,5 @@ public class MainActivity extends CameraActivity {
         colorAnimator.start();
         Log.d("Nazar debug","resumming");
     }
+
 }
