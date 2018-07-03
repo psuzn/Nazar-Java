@@ -146,10 +146,10 @@ public class Classification extends CameraActivity2 implements OnImageAvailableL
             });
     }
 
-    @Override
+    /*@Override
     public void onSetDebug(boolean debug) {
         classifier.enableStatLogging(debug);
-    }
+    }*/
 
     @Override
     public void onSetDebug(boolean debug) {

@@ -45,7 +45,7 @@ import com.sujanpoudel.nazar.env.ImageUtils;
 import com.sujanpoudel.nazar.env.Logger;
 import com.sujanpoudel.nazar.R; // Explicit import needed for internal Google builds.
 
-public abstract class CameraActivity extends Activity
+public abstract class CameraActivity2 extends Activity
     implements OnImageAvailableListener, Camera.PreviewCallback {
   private static final Logger LOGGER = new Logger();
 
@@ -296,7 +296,7 @@ public abstract class CameraActivity extends Activity
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA) ||
           shouldShowRequestPermissionRationale(PERMISSION_STORAGE)) {
-        Toast.makeText(CameraActivity.this,
+        Toast.makeText(CameraActivity2.this,
             "Camera AND storage permission are required for this demo", Toast.LENGTH_LONG).show();
       }
       requestPermissions(new String[] {PERMISSION_CAMERA, PERMISSION_STORAGE}, PERMISSIONS_REQUEST);
@@ -365,7 +365,7 @@ public abstract class CameraActivity extends Activity
                 public void onPreviewSizeChosen(final Size size, final int rotation) {
                   previewHeight = size.getHeight();
                   previewWidth = size.getWidth();
-                  CameraActivity.this.onPreviewSizeChosen(size, rotation);
+                  CameraActivity2.this.onPreviewSizeChosen(size, rotation);
                 }
               },
               this,
