@@ -1,21 +1,31 @@
 package com.sujanpoudel.nazar;
 
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
-import android.hardware.Camera;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.util.Log;
-import android.view.TextureView;
+import android.graphics.Bitmap.Config;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Typeface;
+
 import android.media.ImageReader.OnImageAvailableListener;
+
+import android.os.SystemClock;
+import android.util.Size;
+import android.util.TypedValue;
+import android.view.Display;
+import android.view.Surface;
+
+import java.util.List;
+import java.util.Vector;
 
 import com.sujanpoudel.nazar.env.Logger;
 import com.sujanpoudel.nazar.env.BorderedText;
 import com.sujanpoudel.nazar.OverlayView.DrawCallback;
 import com.sujanpoudel.nazar.env.ImageUtils;
 
-public class Classification extends CameraActivity implements OnImageAvailableListener {
+import com.sujanpoudel.nazar.R;
+
+public class Classification extends CameraActivity2 implements OnImageAvailableListener {
 
     private static final Logger LOGGER = new Logger();
     protected static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -108,26 +118,74 @@ public class Classification extends CameraActivity implements OnImageAvailableLi
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        setContentView(R.layout.activity_classification);
-        super.onCreate(savedInstanceState);
-        Log.d("Nazar Debug","Classification activity");
+    protected void processImage() {
+        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
+        final Canvas canvas = new Canvas(croppedBitmap);
+        canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
+
+        // For examining the actual TF input.
+        if (SAVE_PREVIEW_BITMAP) {
+        ImageUtils.saveBitmap(croppedBitmap);
+        }
+        runInBackground(
+            new Runnable() {
+            @Override
+            public void run() {
+                final long startTime = SystemClock.uptimeMillis();
+                final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
+                lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                LOGGER.i("Detect: %s", results);
+                cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+                if (resultsView == null) {
+                resultsView = (ResultsView) findViewById(R.id.results);
+                }
+                resultsView.setResults(results);
+                requestRender();
+                readyForNextImage();
+            }
+            });
     }
 
     @Override
-    protected TextureView getCameraPreviewImageView() {
-
-        return findViewById(R.id.camPreview1);
+    public void onSetDebug(boolean debug) {
+        classifier.enableStatLogging(debug);
     }
 
     @Override
-    protected void onPreviewSizeChosen() {
-        mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
-        mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
+    public void onSetDebug(boolean debug) {
+        classifier.enableStatLogging(debug);
     }
 
-    @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        camera.addCallbackBuffer(data);
+    private void renderDebug(final Canvas canvas) {
+        if (!isDebug()) {
+        return;
+        }
+        final Bitmap copy = cropCopyBitmap;
+        if (copy != null) {
+        final Matrix matrix = new Matrix();
+        final float scaleFactor = 2;
+        matrix.postScale(scaleFactor, scaleFactor);
+        matrix.postTranslate(
+            canvas.getWidth() - copy.getWidth() * scaleFactor,
+            canvas.getHeight() - copy.getHeight() * scaleFactor);
+        canvas.drawBitmap(copy, matrix, new Paint());
+
+        final Vector<String> lines = new Vector<String>();
+        if (classifier != null) {
+            String statString = classifier.getStatString();
+            String[] statLines = statString.split("\n");
+            for (String line : statLines) {
+            lines.add(line);
+            }
+        }
+
+        lines.add("Frame: " + previewWidth + "x" + previewHeight);
+        lines.add("Crop: " + copy.getWidth() + "x" + copy.getHeight());
+        lines.add("View: " + canvas.getWidth() + "x" + canvas.getHeight());
+        lines.add("Rotation: " + sensorOrientation);
+        lines.add("Inference time: " + lastProcessingTimeMs + "ms");
+
+        borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
+        }
     }
 }
