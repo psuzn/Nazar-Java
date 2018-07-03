@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.WindowManager;
@@ -29,10 +30,6 @@ import java.util.List;
 public abstract class CameraActivity extends android.app.Activity
 
     implements  Camera.PreviewCallback,TextureView.SurfaceTextureListener{
-
-    protected static final String sharedPrefenrenceName = "Settings";
-    protected static final String cameraId = "cameraId";
-
     protected int usecamera = Camera.CameraInfo.CAMERA_FACING_BACK;
     protected TextureView cameraPreviewImageView;
     protected Camera mCamera;
@@ -53,10 +50,6 @@ public abstract class CameraActivity extends android.app.Activity
         }
         else
             this.requestPermission();
-    }
-    void  getPreferences(){
-        SharedPreferences settings = getSharedPreferences(sharedPrefenrenceName,MODE_PRIVATE);
-        usecamera = settings.getInt(cameraId,usecamera);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -257,6 +250,7 @@ public abstract class CameraActivity extends android.app.Activity
         }
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -284,4 +278,5 @@ public abstract class CameraActivity extends android.app.Activity
     }
     protected abstract TextureView getCameraPreviewImageView();
     protected abstract void onPreviewSizeChosen();
+    protected abstract void getPreferences();
 }

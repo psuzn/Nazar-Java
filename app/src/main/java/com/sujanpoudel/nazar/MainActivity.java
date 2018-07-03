@@ -3,6 +3,7 @@ package com.sujanpoudel.nazar;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -53,56 +54,18 @@ class WizardPagerAdapter extends PagerAdapter {
 
 
 public class MainActivity extends CameraActivity {
-    private static final boolean DEVELOPER_MODE = true;
-    ViewPager.OnPageChangeListener onPageChangeListner =
-            new ViewPager.OnPageChangeListener() {
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                    }
-
-                    @Override
-                    public void onPageSelected(int position) {
-                        if( !sliderPageIndicator.isEmpty() )
-                            for(int i =0 ; i < sliderPageIndicator.size() ; i++ )
-                                if(i==position)
-                                    sliderPageIndicator.get(i).setChecked(true);
-                                else
-                                    sliderPageIndicator.get(i).setChecked(false);
-                    }
-
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
-
-                    }
-            };
-    View.OnClickListener onDetectionButtonClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            colorAnimator.pause();
-            Toast.makeText(MainActivity.this,"Detection will be implemented soon",Toast.LENGTH_SHORT).show();
-            Intent myintent = new Intent(MainActivity.this,Detection.class);
-            MainActivity.this.startActivity(myintent);
-        }
-    };
-    View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
-        }
-    };
-
+    SharedPreferences settings;
     ArrayList<RadioButton>  sliderPageIndicator = new ArrayList<>();
     ValueAnimator colorAnimator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getPreferences(); // important preferences should get first
         setContentView(R.layout.activity_main);
         super.onCreate(savedInstanceState);
-        startColorAnimation();
         WizardPagerAdapter adapter = new WizardPagerAdapter();
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(adapter);
-
         pager.addOnPageChangeListener(onPageChangeListner);
         findViewById(R.id.startClassification).setOnClickListener(onClassificationButtonClick);
         findViewById(R.id.startDetection).setOnClickListener(onDetectionButtonClick);
@@ -115,6 +78,7 @@ public class MainActivity extends CameraActivity {
             if(o instanceof RadioButton)
                 sliderPageIndicator.add((RadioButton) o);
         }
+        startColorAnimation();
 
     }
     void startColorAnimation(){
@@ -163,4 +127,48 @@ public class MainActivity extends CameraActivity {
         Log.d("Nazar debug","resumming");
     }
 
+    @Override
+    protected void getPreferences() {
+            settings = getSharedPreferences("Settings",MODE_PRIVATE);
+            usecamera = settings.getInt("cameraId",usecamera);
+    }
+
+    //event listeners
+    ViewPager.OnPageChangeListener onPageChangeListner =
+            new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    if( !sliderPageIndicator.isEmpty() )
+                        for(int i =0 ; i < sliderPageIndicator.size() ; i++ )
+                            if(i==position)
+                                sliderPageIndicator.get(i).setChecked(true);
+                            else
+                                sliderPageIndicator.get(i).setChecked(false);
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
+                }
+            };
+    View.OnClickListener onDetectionButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            colorAnimator.pause();
+            Toast.makeText(MainActivity.this,"Detection will be implemented soon",Toast.LENGTH_SHORT).show();
+            Intent myintent = new Intent(MainActivity.this,Detection.class);
+            MainActivity.this.startActivity(myintent);
+        }
+    };
+    View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
+        }
+    };
 }

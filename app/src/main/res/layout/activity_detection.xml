@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_dark">
@@ -18,51 +20,92 @@
         android:alpha="0"
         android:background="@android:color/black"
         android:contentDescription="Image view for overlay color" />
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
+            android:background="@color/pagerBackground"
             android:orientation="horizontal"
-            android:paddingRight="10dp"
+            android:paddingEnd="10dp"
+            android:paddingLeft="10dp"
             android:paddingTop="10dp">
 
-            <Space
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/singleImageMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:background="#00000000"
+                    android:hapticFeedbackEnabled="true"
+                    android:src="@drawable/ic_image" />
+
+                <android.support.v7.widget.SwitchCompat
+                    android:id="@+id/modeSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    app:thumbTint="?attr/actionModeSplitBackground"
+                    app:trackTint="?attr/colorButtonNormal" />
+
+                <ImageButton
+                    android:id="@+id/realTimeMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:background="#00000000"
+                    android:hapticFeedbackEnabled="true"
+                    android:src="@drawable/ic_video" />
+
+            </LinearLayout>
 
             <ImageButton
                 android:id="@+id/cameraSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
                 android:background="#00000000"
-                android:gravity="right"
                 android:src="@drawable/ic_camera_rotate" />
-        </LinearLayout>
+        </RelativeLayout>
 
         <RelativeLayout
+            android:id="@+id/bottomContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             android:paddingBottom="10dp"
-            android:paddingRight="10dp">
+            android:paddingRight="20dp">
 
             <ImageButton
-                android:layout_width="55dp"
-                android:layout_height="55dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_alignParentLeft="false"
                 android:layout_alignParentRight="true"
                 android:layout_centerInParent="true"
                 android:background="#00000000"
-                android:fadingEdge="none"
-                android:src="@drawable/ic_image" />
+                android:hapticFeedbackEnabled="true"
+                android:src="@drawable/ic_add_image" />
 
             <ImageButton
+                android:id="@+id/capture"
                 android:layout_width="55dp"
                 android:layout_height="55dp"
                 android:layout_alignParentBottom="false"
@@ -72,7 +115,6 @@
                 android:background="#00000000"
                 android:fadingEdge="none"
                 android:src="@drawable/ic_camera_capture" />
-
         </RelativeLayout>
 
     </RelativeLayout>
