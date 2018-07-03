@@ -4,14 +4,13 @@ import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Debug;
+import android.os.StrictMode;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -53,7 +52,7 @@ class WizardPagerAdapter extends PagerAdapter {
 
 
 public class MainActivity extends CameraActivity {
-
+    private static final boolean DEVELOPER_MODE = true;
     ViewPager.OnPageChangeListener onPageChangeListner =
             new ViewPager.OnPageChangeListener() {
                     @Override
@@ -79,6 +78,7 @@ public class MainActivity extends CameraActivity {
     View.OnClickListener onDetectionButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            colorAnimator.pause();
             Toast.makeText(MainActivity.this,"Detection will be implemented soon",Toast.LENGTH_SHORT).show();
             Intent myintent = new Intent(MainActivity.this,Detection.class);
             MainActivity.this.startActivity(myintent);
@@ -90,8 +90,9 @@ public class MainActivity extends CameraActivity {
             Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
         }
     };
-    ArrayList<RadioButton>  sliderPageIndicator = new ArrayList<>();
 
+    ArrayList<RadioButton>  sliderPageIndicator = new ArrayList<>();
+    ValueAnimator colorAnimator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setContentView(R.layout.activity_main);
@@ -117,17 +118,17 @@ public class MainActivity extends CameraActivity {
     }
     void startColorAnimation(){
         final ImageView blurPreview = findViewById(R.id.colorOverlay);
-        ValueAnimator anim = ValueAnimator.ofFloat(0, 1);   // animate from 0 to 1
-        anim.setDuration(8000);                              // for 8000 ms
-        anim.setRepeatMode(ValueAnimator.REVERSE);
-        anim.setRepeatCount(ValueAnimator.INFINITE);
-        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener(){
+        colorAnimator = ValueAnimator.ofFloat(0, 1);   // animate from 0 to 1
+        colorAnimator.setDuration(8000);                              // for 8000 ms
+        colorAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        colorAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        colorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener(){
             @Override public void onAnimationUpdate(ValueAnimator animation) {
                 blurPreview.setBackgroundColor(Color.HSVToColor(new float[]{ animation.getAnimatedFraction() * 360 , 0.7f,0.7f}));
                 blurPreview.setAlpha(0.7f);
             }
         });
-        anim.start();
+        colorAnimator.start();
     }
 
     @Override
@@ -157,6 +158,7 @@ public class MainActivity extends CameraActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        colorAnimator.start();
         Log.d("Nazar debug","resumming");
     }
 }

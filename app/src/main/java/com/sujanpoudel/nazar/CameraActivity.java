@@ -232,9 +232,7 @@ public abstract class CameraActivity extends android.app.Activity
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
-
         }
-
     }
 
     @Override

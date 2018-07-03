@@ -12,6 +12,7 @@ import android.view.TextureView;
 public class Detection extends CameraActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         setContentView(R.layout.activity_detection);
         super.onCreate(savedInstanceState);
         Log.d("Nazar Debug","Detection activity");
