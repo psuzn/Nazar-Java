@@ -1,25 +1,23 @@
 package com.sujanpoudel.nazar;
 
-import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
+import android.content.SharedPreferences;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class Detection extends CameraActivity {
-    private static final String sharedPrefenrences = "Settings";
     View.OnClickListener cameraSwitch  = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Toast.makeText(Detection.this,"Switch cmaera",Toast.LENGTH_SHORT).show();
+            int nextCam = (usecamera == Camera.CameraInfo.CAMERA_FACING_BACK )?
+                                    Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
+            SharedPreferences settings = getSharedPreferences(sharedPrefenrenceName,MODE_PRIVATE);
+            settings.edit().putInt(cameraId,nextCam).apply();
             Detection.this.recreate();
         }
     };

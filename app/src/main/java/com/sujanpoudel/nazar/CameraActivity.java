@@ -2,7 +2,7 @@ package com.sujanpoudel.nazar;
 
 
 import android.app.AlertDialog;
-import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.SurfaceTexture;
@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.TextureView;
 import android.view.WindowManager;
 import android.widget.Toast;
-import android.graphics.Bitmap;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,11 @@ import java.util.List;
 public abstract class CameraActivity extends android.app.Activity
 
     implements  Camera.PreviewCallback,TextureView.SurfaceTextureListener{
-    private int usecamera = Camera.CameraInfo.CAMERA_FACING_BACK;
+
+    protected static final String sharedPrefenrenceName = "Settings";
+    protected static final String cameraId = "cameraId";
+
+    protected int usecamera = Camera.CameraInfo.CAMERA_FACING_BACK;
     protected TextureView cameraPreviewImageView;
     protected Camera mCamera;
     protected int previewWidth,previewHeight;
@@ -40,6 +43,7 @@ public abstract class CameraActivity extends android.app.Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getPreferences();
         if(havePermission())
         {
             cameraPreviewImageView = getCameraPreviewImageView();
@@ -49,7 +53,10 @@ public abstract class CameraActivity extends android.app.Activity
         else
             this.requestPermission();
     }
-
+    void  getPreferences(){
+        SharedPreferences settings = getSharedPreferences(sharedPrefenrenceName,MODE_PRIVATE);
+        usecamera = settings.getInt(cameraId,usecamera);
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
