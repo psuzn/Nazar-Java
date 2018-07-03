@@ -1,4 +1,4 @@
-package org.tensorflow.demo;
+package com.sujanpoudel.nazar;
 
 /*
  * Copyright 2017 The TensorFlow Authors. All Rights Reserved.
