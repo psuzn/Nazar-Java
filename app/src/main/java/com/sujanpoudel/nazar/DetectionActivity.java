@@ -41,7 +41,7 @@ public class DetectionActivity extends CameraActivity {
 
     @Override
     protected TextureView getCameraPreviewImageView() {
-        return findViewById(R.id.camPreview1);
+        return findViewById(R.id.camPreview);
     }
 
     @Override

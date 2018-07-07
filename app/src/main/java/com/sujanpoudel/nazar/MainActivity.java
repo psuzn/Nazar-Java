@@ -167,6 +167,9 @@ public class MainActivity extends CameraActivity {
         @Override
         public void onClick(View v) {
             Toast.makeText(MainActivity.this,"ClassificationActivity will be implemented soon",Toast.LENGTH_SHORT).show();
+            colorAnimator.pause();
+            Intent myintent = new Intent(MainActivity.this,ClassificationActivity.class);
+            MainActivity.this.startActivity(myintent);
         }
     };
 }
