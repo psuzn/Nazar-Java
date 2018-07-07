@@ -1,12 +1,10 @@
 package com.sujanpoudel.nazar;
 
 import android.animation.ValueAnimator;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -160,15 +158,15 @@ public class MainActivity extends CameraActivity {
         @Override
         public void onClick(View v) {
             colorAnimator.pause();
-            Toast.makeText(MainActivity.this,"Detection will be implemented soon",Toast.LENGTH_SHORT).show();
-            Intent myintent = new Intent(MainActivity.this,Detection.class);
+            Toast.makeText(MainActivity.this,"DetectionActivity will be implemented soon",Toast.LENGTH_SHORT).show();
+            Intent myintent = new Intent(MainActivity.this,DetectionActivity.class);
             MainActivity.this.startActivity(myintent);
         }
     };
     View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Toast.makeText(MainActivity.this,"Classification will be implemented soon",Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this,"ClassificationActivity will be implemented soon",Toast.LENGTH_SHORT).show();
         }
     };
 }

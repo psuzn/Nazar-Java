@@ -11,7 +11,7 @@ import android.widget.CompoundButton;
 import android.widget.Toast;
 
 
-public class Detection extends CameraActivity {
+public class DetectionActivity extends CameraActivity {
 
     int detectionMode = DetectionMode.SingleImage;
     AlphaAnimation buttonclick = new AlphaAnimation(1f,0.5f);
@@ -28,7 +28,7 @@ public class Detection extends CameraActivity {
         setContentView(R.layout.activity_detection);
         super.onCreate(savedInstanceState);
 
-        Log.d("Nazar Debug","Detection activity");
+        Log.d("Nazar Debug","DetectionActivity activity");
 
         //initialize event listeners
         findViewById(R.id.cameraSwitch).setOnClickListener(cameraSwitch);
@@ -60,12 +60,12 @@ public class Detection extends CameraActivity {
         Log.d("Nazar Debug","button"+toggle.isChecked());
         if( detectionMode == DetectionMode.SingleImage &&  toggle.isChecked()) {
             toggle.toggle();
-            Toast.makeText(Detection.this,"Single Image Detection Mode",Toast.LENGTH_SHORT).show();
+            Toast.makeText(DetectionActivity.this,"Single Image DetectionActivity Mode",Toast.LENGTH_SHORT).show();
         }
         else if( detectionMode == DetectionMode.Realtime &&  !toggle.isChecked() )
         {
             toggle.toggle();
-            Toast.makeText(Detection.this,"Realtime Detection Mode",Toast.LENGTH_SHORT).show();
+            Toast.makeText(DetectionActivity.this,"Realtime DetectionActivity Mode",Toast.LENGTH_SHORT).show();
         }
         if(detectionMode == DetectionMode.Realtime)
             findViewById(R.id.bottomContainer).setVisibility(View.INVISIBLE);
@@ -81,17 +81,17 @@ public class Detection extends CameraActivity {
         String toastMessage ="";
         if(d == DetectionMode.SingleImage)
         {
-            toastMessage+="Single Image Detection Mode";
+            toastMessage+="Single Image DetectionActivity Mode";
             findViewById(R.id.bottomContainer).setVisibility(View.VISIBLE);
 
         }
         else
         {
-            toastMessage+="Realtime Detection Mode";
+            toastMessage+="Realtime DetectionActivity Mode";
             findViewById(R.id.bottomContainer).setVisibility(View.INVISIBLE);
         }
         detectionMode = d;
-        Toast.makeText(Detection.this,toastMessage,Toast.LENGTH_SHORT).show();
+        Toast.makeText(DetectionActivity.this,toastMessage,Toast.LENGTH_SHORT).show();
         settings.edit().putInt("detectionMode",detectionMode).apply();
     }
     @Override
@@ -108,12 +108,12 @@ public class Detection extends CameraActivity {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
-            Toast.makeText(Detection.this,"Camera Switched",Toast.LENGTH_SHORT).show();
+            Toast.makeText(DetectionActivity.this,"Camera Switched",Toast.LENGTH_SHORT).show();
             int nextCam = (usecamera == Camera.CameraInfo.CAMERA_FACING_BACK )?
                     Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
             SharedPreferences settings = getSharedPreferences("Settings",MODE_PRIVATE);
             settings.edit().putInt("cameraId",nextCam).apply();
-            Detection.this.recreate();
+            DetectionActivity.this.recreate();
         }
     };
 
@@ -127,7 +127,7 @@ public class Detection extends CameraActivity {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
-            Detection.this.changeDetectionMode(DetectionMode.SingleImage);
+            DetectionActivity.this.changeDetectionMode(DetectionMode.SingleImage);
         }
     };
 
@@ -135,16 +135,16 @@ public class Detection extends CameraActivity {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
-            Detection.this.changeDetectionMode(DetectionMode.Realtime);
+            DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
         }
     };
     CompoundButton.OnCheckedChangeListener  modeSwitch = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(!isChecked)
-                Detection.this.changeDetectionMode(DetectionMode.SingleImage);
+                DetectionActivity.this.changeDetectionMode(DetectionMode.SingleImage);
             else
-                Detection.this.changeDetectionMode(DetectionMode.Realtime);
+                DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
         }
     };
 
