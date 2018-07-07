@@ -1,9 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ClassificationActivity">
+    android:background="@android:color/background_dark">
 
-</android.support.constraint.ConstraintLayout>
+    <TextureView
+        android:id="@+id/camPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000"
+        android:contentDescription="Image view for Camera Preview" />
+
+    <ImageView
+        android:id="@+id/colorOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="@android:color/black"
+        android:contentDescription="Image view for overlay color" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@color/pagerBackground"
+            android:orientation="horizontal"
+            android:paddingEnd="10dp"
+            android:paddingLeft="10dp"
+            android:paddingTop="10dp">
+
+            <ImageButton
+                android:id="@+id/cameraSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:background="#00000000"
+                android:src="@drawable/ic_camera_rotate" />
+        </RelativeLayout>
+
+    </RelativeLayout>
+</FrameLayout>
