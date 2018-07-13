@@ -133,9 +133,10 @@ public abstract class CameraActivity extends android.app.Activity
 
         mCamera.setParameters(cameraParameters);
         mCamera.setDisplayOrientation((int)cameraOrientation);
+
         mCamera.setPreviewCallbackWithBuffer(this);
-        previewHeight = mCamera.getParameters().getPreviewSize().height;
-        previewWidth = mCamera.getParameters().getPreviewSize().width;
+        previewHeight = mCamera.getParameters().getPreviewSize().width; //camera is 90 degree oriented
+        previewWidth = mCamera.getParameters().getPreviewSize().height; //camera is 90 degree oriented
         onPreviewSizeChosen();
 
     }

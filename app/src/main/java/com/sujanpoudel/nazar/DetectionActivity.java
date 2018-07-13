@@ -1,13 +1,16 @@
 package com.sujanpoudel.nazar;
 
 import android.content.SharedPreferences;
+import android.graphics.RectF;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -15,7 +18,9 @@ public class DetectionActivity extends CameraActivity {
 
     int detectionMode = DetectionMode.SingleImage;
     AlphaAnimation buttonclick = new AlphaAnimation(1f,0.5f);
-    private SharedPreferences settings;
+    SharedPreferences settings;
+    ImageView resultOverlay;
+    DetectionOverlayManager overMgr;
 
     @interface DetectionMode{
         int SingleImage = 0;
@@ -27,7 +32,7 @@ public class DetectionActivity extends CameraActivity {
         getPreferences();
         setContentView(R.layout.activity_detection);
         super.onCreate(savedInstanceState);
-
+        resultOverlay = findViewById(R.id.resultOverlay);
         Log.d("Nazar Debug","DetectionActivity activity");
 
         //initialize event listeners
@@ -48,13 +53,22 @@ public class DetectionActivity extends CameraActivity {
     protected void onPreviewSizeChosen() {
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
+        Log.d("Nazar Debug","previewWidth:"+previewWidth+" PreviewHeight:"+previewHeight);
+        findViewById(R.id.resultOverlay).setOnTouchListener(onResultOverlayTouch);
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         camera.addCallbackBuffer(data);
-    }
 
+    }
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            overMgr = new DetectionOverlayManager( resultOverlay, resultOverlay.getWidth(), resultOverlay.getHeight());
+        }
+
+    }
     private void setUIElements() {
         CompoundButton toggle =  findViewById(R.id.modeSwitch);
         Log.d("Nazar Debug","button"+toggle.isChecked());
@@ -104,6 +118,7 @@ public class DetectionActivity extends CameraActivity {
 
     }
 
+
     View.OnClickListener cameraSwitch  = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -147,5 +162,21 @@ public class DetectionActivity extends CameraActivity {
                 DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
         }
     };
+     View.OnTouchListener onResultOverlayTouch =  new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(overMgr==null)
+                return false;
+            int touchX = (int) event.getX();
+            int touchY = (int) event.getY();
+            int[] viewCoords = new int[2];
+            resultOverlay.getLocationOnScreen(viewCoords);
 
+            int imageX = touchX - viewCoords[0]; // viewCoords[0] is the X coordinate
+            int imageY = touchY - viewCoords[1];
+            overMgr.drawCircle(imageX,imageY,5);
+            overMgr.drawRectnagle(new RectF(imageX-10,imageY-10,imageX+10,imageY+10));
+            return  false;
+        }
+    };
 }
