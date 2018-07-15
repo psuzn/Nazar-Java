@@ -1,10 +1,15 @@
 package com.sujanpoudel.nazar;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.TextureView;
@@ -23,6 +28,15 @@ public class DetectionActivity extends CameraActivity {
     ImageView resultOverlay;
     DetectionOverlayManager overMgr;
     private Object detector;
+    private HandlerThread handlerThread;
+    private Handler handler;
+    private Matrix frameToCropTransform;
+    private Runnable imageConverter;
+
+    private int[] rgbBytes;
+    private byte[] lastFrame;
+    private Bitmap origionalSizedBitmap;
+    private Bitmap croppedBitmap;
 
     @interface DetectionMode{
         int SingleImage = 0;
@@ -43,6 +57,9 @@ public class DetectionActivity extends CameraActivity {
         findViewById(R.id.realTimeMode).setOnClickListener(realtimeMode);
         ( (CompoundButton) findViewById(R.id.modeSwitch)).setOnCheckedChangeListener(modeSwitch);
         setUIElements(); // make ui elements as defines on settings
+        handlerThread = new HandlerThread("inference");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
     }
 
     @Override
@@ -56,17 +73,52 @@ public class DetectionActivity extends CameraActivity {
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
         Log.d("Nazar Debug","previewWidth:"+previewWidth+" PreviewHeight:"+previewHeight);
         findViewById(R.id.resultOverlay).setOnTouchListener(onResultOverlayTouch);
-            try {
-                new ModelLoader().execute();
-            } catch (final Exception e) {
-                Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT).show();
-                finish();
-            }
+
+        lastFrame = new byte[ImageUtils.getYUVByteSize(previewWidth,previewHeight)];
+        rgbBytes = new int[previewWidth * previewHeight];
+        origionalSizedBitmap = Bitmap.createBitmap(previewHeight,previewWidth, Bitmap.Config.ARGB_8888);//image will be landscape so
+        croppedBitmap = Bitmap.createBitmap(ObjectDetectionAPI.inputSize,ObjectDetectionAPI.inputSize, Bitmap.Config.ARGB_8888);//it will be portraid
+
+        try {
+            new ModelLoader().execute();
+        } catch (final Exception e) {
+            Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        imageConverter =
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        ImageUtils.convertYUV420SPToARGB8888(lastFrame, previewWidth, previewHeight, rgbBytes);
+                    }
+                };
+        frameToCropTransform =
+                ImageUtils.getTransformationMatrix(
+                        previewHeight, previewWidth,
+                        ObjectDetectionAPI.inputSize, ObjectDetectionAPI.inputSize,
+                        90, true);
 
     }
-
+    boolean saved = false;
     @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
+    public void onPreviewFrame(final byte[] data, Camera camera) {
+        System.arraycopy(data,0,lastFrame,0,data.length);
+        runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                origionalSizedBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
+                if(!saved)
+                    ImageUtils.saveBitmap(origionalSizedBitmap,"origioinalsize.png");
+
+                Canvas c= new Canvas(croppedBitmap);
+                c.drawBitmap(origionalSizedBitmap,frameToCropTransform,null);
+                if(!saved)
+                    ImageUtils.saveBitmap(croppedBitmap,"cropped.png");
+                saved = true;
+            }
+        });
+
+        //saved = true;
         camera.addCallbackBuffer(data);
 
     }
@@ -75,7 +127,6 @@ public class DetectionActivity extends CameraActivity {
         if (hasFocus) {
             overMgr = new DetectionOverlayManager( resultOverlay, resultOverlay.getWidth(), resultOverlay.getHeight());
         }
-
     }
     private void setUIElements() {
         CompoundButton toggle =  findViewById(R.id.modeSwitch);
@@ -90,9 +141,15 @@ public class DetectionActivity extends CameraActivity {
             Toast.makeText(DetectionActivity.this,"Realtime DetectionActivity Mode",Toast.LENGTH_SHORT).show();
         }
         if(detectionMode == DetectionMode.Realtime)
-            findViewById(R.id.bottomContainer).setVisibility(View.INVISIBLE);
+        {
+            findViewById(R.id.capture).setVisibility(View.INVISIBLE);
+            findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
+        }
         else
-            findViewById(R.id.bottomContainer).setVisibility(View.VISIBLE);
+        {
+            findViewById(R.id.capture).setVisibility(View.VISIBLE);
+            findViewById(R.id.addImage).setVisibility(View.VISIBLE);
+        }
     }
     void changeDetectionMode(int d){
         CompoundButton toggle =  findViewById(R.id.modeSwitch);
@@ -104,13 +161,15 @@ public class DetectionActivity extends CameraActivity {
         if(d == DetectionMode.SingleImage)
         {
             toastMessage+="Single Image DetectionActivity Mode";
-            findViewById(R.id.bottomContainer).setVisibility(View.VISIBLE);
+            findViewById(R.id.capture).setVisibility(View.VISIBLE);
+            findViewById(R.id.addImage).setVisibility(View.VISIBLE);
 
         }
         else
         {
             toastMessage+="Realtime DetectionActivity Mode";
-            findViewById(R.id.bottomContainer).setVisibility(View.INVISIBLE);
+            findViewById(R.id.capture).setVisibility(View.INVISIBLE);
+            findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
         }
         detectionMode = d;
         Toast.makeText(DetectionActivity.this,toastMessage,Toast.LENGTH_SHORT).show();
@@ -125,8 +184,44 @@ public class DetectionActivity extends CameraActivity {
         detectionMode = settings.getInt("detectionMode", detectionMode);
 
     }
-
-
+    public int[] getRgbBytes() {
+        imageConverter.run();
+        return rgbBytes;
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handlerThread.quit();
+        try {
+            handlerThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        handlerThread = null;
+        handler = null;
+//        try {
+//            handlerThread.join();
+//            handlerThread = null;
+//            handler = null;
+//        } catch (final InterruptedException e) {
+//
+//        }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(handlerThread==null)
+        {
+            handlerThread = new HandlerThread("inference");
+            handlerThread.start();
+            handler = new Handler(handlerThread.getLooper());
+        }
+    }
+    protected synchronized void runInBackground(final Runnable r) {
+        if (handler != null) {
+            handler.post(r);
+        }
+    }
     View.OnClickListener cameraSwitch  = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -188,6 +283,8 @@ public class DetectionActivity extends CameraActivity {
         }
     };
 
+
+
     private class ModelLoader extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -197,9 +294,8 @@ public class DetectionActivity extends CameraActivity {
         }
         @Override
         protected void onPostExecute(Void spinnerView) {
+            findViewById(R.id.loadingAnim).setVisibility(View.INVISIBLE);
             Toast.makeText(getApplicationContext(), "Model Loaded", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 }

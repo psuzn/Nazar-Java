@@ -20,8 +20,8 @@ import java.util.Vector;
 public class ObjectDetectionAPI {
 
     private  String modelFile = "file:///android_asset/frozen_inference_graph.pb";
-    private  String labelFile = "file:///android_asset/mscoco_label_map.pbtxt";
-    private  int inputSize; //size of input image (square)
+    public   String labelFile = "file:///android_asset/mscoco_label_map.pbtxt";
+    public static int inputSize=300; //size of input image (square)
     private  int MAX_RESULTS = 100; //maximum number of output detections
 
     private Vector<String> labels = new Vector<String>();

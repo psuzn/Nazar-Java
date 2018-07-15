@@ -12,6 +12,8 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
@@ -38,6 +40,9 @@ public abstract class CameraActivity extends android.app.Activity
     static {
         System.loadLibrary("native-lib");
     }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +55,7 @@ public abstract class CameraActivity extends android.app.Activity
         }
         else
             this.requestPermission();
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -249,6 +255,7 @@ public abstract class CameraActivity extends android.app.Activity
             mCamera.release();
             mCamera = null;
         }
+
     }
 
 
@@ -261,6 +268,8 @@ public abstract class CameraActivity extends android.app.Activity
             if(mCamera!=null) // mcamera will be null when there is no camera
                 mCamera.startPreview();
         }
+
+
     }
 
     @Override

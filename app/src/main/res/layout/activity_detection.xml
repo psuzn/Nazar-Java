@@ -91,17 +91,18 @@
             android:layout_alignParentBottom="true"
             android:orientation="horizontal"
             android:paddingBottom="10dp"
+            android:paddingLeft="20dp"
             android:paddingRight="20dp">
 
-            <ImageButton
+
+            <ProgressBar
+                android:id="@+id/loadingAnim"
+                style="?android:attr/progressBarStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="false"
-                android:layout_alignParentRight="true"
-                android:layout_centerInParent="true"
-                android:background="#00000000"
-                android:hapticFeedbackEnabled="true"
-                android:src="@drawable/ic_add_image" />
+                android:layout_centerVertical="true"
+                android:scaleX="0.5"
+                android:scaleY="0.5" />
 
             <ImageButton
                 android:id="@+id/capture"
@@ -114,7 +115,18 @@
                 android:background="#00000000"
                 android:fadingEdge="none"
                 android:src="@drawable/ic_camera_capture" />
+            <ImageButton
+                android:id="@+id/addImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="false"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:background="#00000000"
+                android:hapticFeedbackEnabled="true"
+                android:src="@drawable/ic_add_image" />
         </RelativeLayout>
 
     </RelativeLayout>
+
 </FrameLayout>
