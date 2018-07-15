@@ -3,6 +3,7 @@ package com.sujanpoudel.nazar;
 import android.content.SharedPreferences;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -21,12 +22,12 @@ public class DetectionActivity extends CameraActivity {
     SharedPreferences settings;
     ImageView resultOverlay;
     DetectionOverlayManager overMgr;
+    private Object detector;
 
     @interface DetectionMode{
         int SingleImage = 0;
         int Realtime =1;
-    };
-    
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getPreferences();
@@ -55,6 +56,13 @@ public class DetectionActivity extends CameraActivity {
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
         Log.d("Nazar Debug","previewWidth:"+previewWidth+" PreviewHeight:"+previewHeight);
         findViewById(R.id.resultOverlay).setOnTouchListener(onResultOverlayTouch);
+            try {
+                new ModelLoader().execute();
+            } catch (final Exception e) {
+                Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
     }
 
     @Override
@@ -179,4 +187,19 @@ public class DetectionActivity extends CameraActivity {
             return  false;
         }
     };
+
+    private class ModelLoader extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground( Void... voids) {
+            detector = new ObjectDetectionAPI(getAssets());
+            return  null;
+        }
+        @Override
+        protected void onPostExecute(Void spinnerView) {
+            Toast.makeText(getApplicationContext(), "Model Loaded", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }
