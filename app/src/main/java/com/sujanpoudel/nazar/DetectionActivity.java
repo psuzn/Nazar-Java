@@ -323,26 +323,6 @@ public class DetectionActivity extends CameraActivity {
                 DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
         }
     };
-     View.OnTouchListener onTapFocusListner =  new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if(overMgr==null)
-                return false;
-            int touchX = (int) event.getX();
-            int touchY = (int) event.getY();
-//            int[] viewCoords = new int[2];
-//            resultOverlay.getLocationOnScreen(viewCoords);
-//
-//            int imageX = touchX - viewCoords[0]; // viewCoords[0] is the X coordinate
-//            int imageY = touchY - viewCoords[1];
-//            overMgr.drawCircle(imageX,imageY,5);
-//            overMgr.drawRectnagle(new RectF(imageX-10,imageY-10,imageX+10,imageY+10));
-            return  false;
-        }
-    };
-
-
-
     private class ModelLoader extends AsyncTask<Void, Void, Void> {
 
         @Override
