@@ -93,7 +93,6 @@ public class ObjectDetectionAPI {
         inferenceInterface.feed(inputName, byteValues, 1, inputSize, inputSize, 3);
         //run the inference
         inferenceInterface.run(outputNames, logStats);
-        Log.d("Nazar_Debug","finished infernece");
         //copy the result from
         inferenceInterface.fetch(outputNames[0], outputLocations);
         inferenceInterface.fetch(outputNames[1], outputScores);
@@ -119,7 +118,7 @@ public class ObjectDetectionAPI {
         for (int i = 0; i < Math.min(pq.size(), MAX_RESULTS); ++i) {
             Recognition a= pq.poll();
             recognitions.add(a);
-            Log.d("none","class:"+a.getClassId()+", score:"+a.getConfidence() );
+            //Log.d("none","class:"+a.getClassId()+", score:"+a.getConfidence() );
         }
         return recognitions;
     }

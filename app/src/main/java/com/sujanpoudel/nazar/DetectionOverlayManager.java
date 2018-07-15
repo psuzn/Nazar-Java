@@ -34,7 +34,7 @@ public class DetectionOverlayManager  {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(rect,paint);
         imgOverlay.draw(canvas);
-        imgOverlay.invalidate();
+
     }
     public void  drawCircle(float x,float y,float r ){
         Log.d("none","drawing circle \n\n\n");
@@ -42,7 +42,6 @@ public class DetectionOverlayManager  {
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawCircle(x,y,r,paint);
         imgOverlay.draw(canvas);
-        imgOverlay.invalidate();
         touches++;
         if(touches>10)
         {
@@ -52,9 +51,9 @@ public class DetectionOverlayManager  {
     }
     public void clear(){
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        imgOverlay.draw(canvas);
+    }
+    public void invalidate(){
         imgOverlay.invalidate();
-
     }
 
 }

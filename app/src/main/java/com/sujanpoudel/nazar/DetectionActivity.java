@@ -26,6 +26,7 @@ import java.util.List;
 public class DetectionActivity extends CameraActivity {
 
     int detectionMode = DetectionMode.SingleImage;
+    private float minimumConfidence = 0.5f;
     AlphaAnimation buttonclick = new AlphaAnimation(1f,0.5f);
     SharedPreferences settings;
     ImageView resultOverlay;
@@ -33,13 +34,21 @@ public class DetectionActivity extends CameraActivity {
     private ObjectDetectionAPI detector;
     private HandlerThread handlerThread;
     private Handler handler;
-    private Matrix frameToCropTransform;
+    private Matrix resizeToInputMatrix;
+    private Matrix resizeToPreviewMatrix;
+    private Matrix MakePotraidMatrix;
+
     private Runnable imageConverter;
 
     private int[] rgbBytes;
     private byte[] lastFrame;
-    private Bitmap origionalSizedBitmap;
-    private Bitmap croppedBitmap;
+    private Bitmap onPreviewCallbackBitmap;
+    private Bitmap onPreviewCallbackPotraidBitmp;
+    private Bitmap inputBitmap;
+    Canvas onPreviewCallbackPotraidCanvas;
+    Canvas inputBitmapCanvas;
+
+
     private Runnable postInferenceCallback;
     private boolean isProcessingFrame = false;
     private boolean computingDetection = false;
@@ -79,12 +88,12 @@ public class DetectionActivity extends CameraActivity {
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
         mCamera.addCallbackBuffer (new byte[ ImageUtils.getYUVByteSize(previewWidth,previewHeight) ]);
         Log.d("Nazar Debug","previewWidth:"+previewWidth+" PreviewHeight:"+previewHeight);
-        findViewById(R.id.resultOverlay).setOnTouchListener(onResultOverlayTouch);
-
-        lastFrame = new byte[ImageUtils.getYUVByteSize(previewWidth,previewHeight)];
         rgbBytes = new int[previewWidth * previewHeight];
-        origionalSizedBitmap = Bitmap.createBitmap(previewHeight,previewWidth, Bitmap.Config.ARGB_8888);//image will be landscape so
-        croppedBitmap = Bitmap.createBitmap(ObjectDetectionAPI.inputSize,ObjectDetectionAPI.inputSize, Bitmap.Config.ARGB_8888);//it will be portraid
+        onPreviewCallbackBitmap = Bitmap.createBitmap(previewHeight,previewWidth, Bitmap.Config.ARGB_8888);//image will be landscape so
+        inputBitmap = Bitmap.createBitmap(ObjectDetectionAPI.inputSize,ObjectDetectionAPI.inputSize, Bitmap.Config.ARGB_8888);//it will be portraid
+        onPreviewCallbackPotraidBitmp = Bitmap.createBitmap(previewWidth,previewHeight, Bitmap.Config.ARGB_8888);
+        onPreviewCallbackPotraidCanvas = new Canvas(onPreviewCallbackPotraidBitmp);
+        inputBitmapCanvas = new Canvas(inputBitmap);
 
         try {
             new ModelLoader().execute();
@@ -92,12 +101,14 @@ public class DetectionActivity extends CameraActivity {
             Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT).show();
             finish();
         }
-        frameToCropTransform =
-                ImageUtils.getTransformationMatrix(
-                        previewHeight, previewWidth,
-                        ObjectDetectionAPI.inputSize, ObjectDetectionAPI.inputSize,
-                        90, true);
 
+        resizeToPreviewMatrix = new Matrix();
+        MakePotraidMatrix = ImageUtils.getTransformationMatrix(previewHeight,previewWidth,previewWidth,previewHeight,90,true);
+        resizeToInputMatrix =ImageUtils.getTransformationMatrix(
+                                    previewWidth, previewHeight,
+                                    ObjectDetectionAPI.inputSize, ObjectDetectionAPI.inputSize,
+                                    0, true);
+        resizeToInputMatrix.invert(resizeToPreviewMatrix);
     }
 
     public void processImage(){
@@ -106,59 +117,35 @@ public class DetectionActivity extends CameraActivity {
             return;
         }
         computingDetection = true;
-        origionalSizedBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
+        onPreviewCallbackBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
         readyForNextFrame();
+        overMgr.invalidate();
+        onPreviewCallbackPotraidCanvas.drawBitmap(onPreviewCallbackBitmap,MakePotraidMatrix,null);
+        final Canvas canvas = new Canvas(inputBitmap);
+        inputBitmapCanvas.drawBitmap(onPreviewCallbackPotraidBitmp, resizeToInputMatrix, null);
 
-        final Canvas canvas = new Canvas(croppedBitmap);
-        canvas.drawBitmap(origionalSizedBitmap, frameToCropTransform, null);
         runInBackground(
                 new Runnable() {
                     @Override
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
 
-                        final List<Recognition> results = detector.detect(croppedBitmap);
+                        final List<Recognition> results = detector.detect(inputBitmap);
+                        overMgr.clear();
                         long lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                         Log.d("Nazar Debug","inference runin "+lastProcessingTimeMs);
-//                        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-//                        final Canvas canvas = new Canvas(cropCopyBitmap);
-//                        final Paint paint = new Paint();
-//                        paint.setColor(Color.RED);
-//                        paint.setStyle(Style.STROKE);
-//                        paint.setStrokeWidth(2.0f);
-//
-//                        float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-//                        switch (MODE) {
-//                            case TF_OD_API:
-//                                minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
-//                                break;
-//                            case MULTIBOX:
-//                                minimumConfidence = MINIMUM_CONFIDENCE_MULTIBOX;
-//                                break;
-//                            case YOLO:
-//                                minimumConfidence = MINIMUM_CONFIDENCE_YOLO;
-//                                break;
-//                        }
-//
-//                        final List<Classifier.Recognition> mappedRecognitions =
-//                                new LinkedList<Classifier.Recognition>();
-//
-//                        for (final Classifier.Recognition result : results) {
-//                            final RectF location = result.getLocation();
-//                            if (location != null && result.getConfidence() >= minimumConfidence) {
-//                                canvas.drawRect(location, paint);
-//
-//                                cropToFrameTransform.mapRect(location);
-//                                result.setLocation(location);
-//                                mappedRecognitions.add(result);
-//                            }
-//                        }
-//
-//                        tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
-//                        trackingOverlay.postInvalidate();
-//
-//                        requestRender();
+                        for (final Recognition result : results) {
+
+                            final RectF location = result.getRect();
+                            Log.d("Nazar Debug","detectedClass:"+result.getClassId()+" confidence"+result.getConfidence());
+                            if (location != null && result.getConfidence() >= minimumConfidence) {
+                                resizeToPreviewMatrix.mapRect(location);
+                                overMgr.drawRectnagle(location);
+                            }
+                        }
+
                         computingDetection = false;
+                        Toast.makeText(getApplicationContext(),"inference finished in "+lastProcessingTimeMs+"ms",Toast.LENGTH_SHORT).show();
 
                     }
                 });
@@ -167,6 +154,7 @@ public class DetectionActivity extends CameraActivity {
 
     void readyForNextFrame(){
         postInferenceCallback.run();
+
     }
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
@@ -196,10 +184,6 @@ public class DetectionActivity extends CameraActivity {
                     }
                 };
         processImage();
-        //System.arraycopy(data,0,lastFrame,0,data.length);
-
-        //saved = true;
-        //camera.addCallbackBuffer(data);
 
     }
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -279,13 +263,7 @@ public class DetectionActivity extends CameraActivity {
         }
         handlerThread = null;
         handler = null;
-//        try {
-//            handlerThread.join();
-//            handlerThread = null;
-//            handler = null;
-//        } catch (final InterruptedException e) {
-//
-//        }
+
     }
     @Override
     protected void onResume() {
@@ -345,20 +323,20 @@ public class DetectionActivity extends CameraActivity {
                 DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
         }
     };
-     View.OnTouchListener onResultOverlayTouch =  new View.OnTouchListener() {
+     View.OnTouchListener onTapFocusListner =  new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if(overMgr==null)
                 return false;
             int touchX = (int) event.getX();
             int touchY = (int) event.getY();
-            int[] viewCoords = new int[2];
-            resultOverlay.getLocationOnScreen(viewCoords);
-
-            int imageX = touchX - viewCoords[0]; // viewCoords[0] is the X coordinate
-            int imageY = touchY - viewCoords[1];
-            overMgr.drawCircle(imageX,imageY,5);
-            overMgr.drawRectnagle(new RectF(imageX-10,imageY-10,imageX+10,imageY+10));
+//            int[] viewCoords = new int[2];
+//            resultOverlay.getLocationOnScreen(viewCoords);
+//
+//            int imageX = touchX - viewCoords[0]; // viewCoords[0] is the X coordinate
+//            int imageY = touchY - viewCoords[1];
+//            overMgr.drawCircle(imageX,imageY,5);
+//            overMgr.drawRectnagle(new RectF(imageX-10,imageY-10,imageX+10,imageY+10));
             return  false;
         }
     };
