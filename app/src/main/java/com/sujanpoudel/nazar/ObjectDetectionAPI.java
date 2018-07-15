@@ -3,7 +3,9 @@ package com.sujanpoudel.nazar;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 
 import org.tensorflow.Graph;
 import org.tensorflow.Operation;
@@ -17,8 +19,10 @@ import java.util.Vector;
 
 public class ObjectDetectionAPI {
 
-    private  int MAX_RESULTS = 100; //maximum number of output detections
+    private  String modelFile = "file:///android_asset/frozen_inference_graph.pb";
+    private  String labelFile = "file:///android_asset/mscoco_label_map.pbtxt";
     private  int inputSize; //size of input image (square)
+    private  int MAX_RESULTS = 100; //maximum number of output detections
 
     private Vector<String> labels = new Vector<String>();
 
@@ -38,19 +42,12 @@ public class ObjectDetectionAPI {
     final Operation outputOp1;
     final Operation outputOp2;
     final Operation outputOp3;
-
-    private AssetManager assetManager;
-
-
     TensorFlowInferenceInterface inferenceInterface;
 
-    ObjectDetectionAPI(int inputSize,String modelFile,String labelFile,AssetManager assetManager) {
+    ObjectDetectionAPI(AssetManager assetManager) {
         inputName = "image_tensor" ;
         outputNames = new String[] {"detection_boxes", "detection_scores",
                 "detection_classes", "num_detections"};
-        this.inputSize = inputSize;
-        this.assetManager = assetManager;
-
         inferenceInterface = new TensorFlowInferenceInterface(assetManager, modelFile);
         g = inferenceInterface.graph();
         if(g!=null)
@@ -80,30 +77,6 @@ public class ObjectDetectionAPI {
         outputNumDetections = new float[1];
         outputLocations = new float[MAX_RESULTS * 4];
         outputClasses = new float[MAX_RESULTS];
-
-        //String labelFIleAtualFilename = labelFile.split("file:///android_asset/")[1];
-        //String j = "";
-//        try {
-//            InputStream labelsInput = assetManager.open(labelFIleAtualFilename);
-//            BufferedReader br = new BufferedReader(new InputStreamReader(labelsInput));
-//            String line;
-//            while ((line = br.readLine()) != null) {
-//                this.labels.add(line); // read and add the labels into
-//                j+=line;
-//            }
-//            br.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        JSONArray ja = new JSONArray();
-//        try
-//        {
-//            ja = new JSONArray(j);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//            Log.d("Nazar_Debug",e.toString());
-//        }
-//        Log.d("Nazar_Debug",ja.toString());
     }
     public List<Recognition> detect( final Bitmap bitmap){
         //copy the bitmap to int array buffer
@@ -148,7 +121,7 @@ public class ObjectDetectionAPI {
             recognitions.add(a);
             Log.d("none","class:"+a.getClassId()+", score:"+a.getConfidence() );
         }
-
         return recognitions;
     }
+
 }
