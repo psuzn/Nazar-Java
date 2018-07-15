@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.TextureView;
@@ -19,6 +20,8 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.util.List;
+
 
 public class DetectionActivity extends CameraActivity {
 
@@ -27,7 +30,7 @@ public class DetectionActivity extends CameraActivity {
     SharedPreferences settings;
     ImageView resultOverlay;
     DetectionOverlayManager overMgr;
-    private Object detector;
+    private ObjectDetectionAPI detector;
     private HandlerThread handlerThread;
     private Handler handler;
     private Matrix frameToCropTransform;
@@ -37,6 +40,10 @@ public class DetectionActivity extends CameraActivity {
     private byte[] lastFrame;
     private Bitmap origionalSizedBitmap;
     private Bitmap croppedBitmap;
+    private Runnable postInferenceCallback;
+    private boolean isProcessingFrame = false;
+    private boolean computingDetection = false;
+    private boolean modelLoaded = false;
 
     @interface DetectionMode{
         int SingleImage = 0;
@@ -85,13 +92,6 @@ public class DetectionActivity extends CameraActivity {
             Toast.makeText(getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT).show();
             finish();
         }
-        imageConverter =
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        ImageUtils.convertYUV420SPToARGB8888(lastFrame, previewWidth, previewHeight, rgbBytes);
-                    }
-                };
         frameToCropTransform =
                 ImageUtils.getTransformationMatrix(
                         previewHeight, previewWidth,
@@ -99,27 +99,107 @@ public class DetectionActivity extends CameraActivity {
                         90, true);
 
     }
-    boolean saved = false;
-    @Override
-    public void onPreviewFrame(final byte[] data, Camera camera) {
-        System.arraycopy(data,0,lastFrame,0,data.length);
-        runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                origionalSizedBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
-                if(!saved)
-                    ImageUtils.saveBitmap(origionalSizedBitmap,"origioinalsize.png");
 
-                Canvas c= new Canvas(croppedBitmap);
-                c.drawBitmap(origionalSizedBitmap,frameToCropTransform,null);
-                if(!saved)
-                    ImageUtils.saveBitmap(croppedBitmap,"cropped.png");
-                saved = true;
-            }
-        });
+    public void processImage(){
+        if (computingDetection){
+            readyForNextFrame();
+            return;
+        }
+        computingDetection = true;
+        origionalSizedBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
+        readyForNextFrame();
+
+        final Canvas canvas = new Canvas(croppedBitmap);
+        canvas.drawBitmap(origionalSizedBitmap, frameToCropTransform, null);
+        runInBackground(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final long startTime = SystemClock.uptimeMillis();
+
+                        final List<Recognition> results = detector.detect(croppedBitmap);
+                        long lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                        Log.d("Nazar Debug","inference runin "+lastProcessingTimeMs);
+//                        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+//                        final Canvas canvas = new Canvas(cropCopyBitmap);
+//                        final Paint paint = new Paint();
+//                        paint.setColor(Color.RED);
+//                        paint.setStyle(Style.STROKE);
+//                        paint.setStrokeWidth(2.0f);
+//
+//                        float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+//                        switch (MODE) {
+//                            case TF_OD_API:
+//                                minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
+//                                break;
+//                            case MULTIBOX:
+//                                minimumConfidence = MINIMUM_CONFIDENCE_MULTIBOX;
+//                                break;
+//                            case YOLO:
+//                                minimumConfidence = MINIMUM_CONFIDENCE_YOLO;
+//                                break;
+//                        }
+//
+//                        final List<Classifier.Recognition> mappedRecognitions =
+//                                new LinkedList<Classifier.Recognition>();
+//
+//                        for (final Classifier.Recognition result : results) {
+//                            final RectF location = result.getLocation();
+//                            if (location != null && result.getConfidence() >= minimumConfidence) {
+//                                canvas.drawRect(location, paint);
+//
+//                                cropToFrameTransform.mapRect(location);
+//                                result.setLocation(location);
+//                                mappedRecognitions.add(result);
+//                            }
+//                        }
+//
+//                        tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
+//                        trackingOverlay.postInvalidate();
+//
+//                        requestRender();
+                        computingDetection = false;
+
+                    }
+                });
+
+    }
+
+    void readyForNextFrame(){
+        postInferenceCallback.run();
+    }
+    @Override
+    public void onPreviewFrame(final byte[] data, final Camera camera) {
+        if(isProcessingFrame)
+        {
+            Log.d("Nazar Debug","frame dropping");
+        }
+        if(!modelLoaded)
+        {
+            camera.addCallbackBuffer(data);
+            return;
+        }
+        isProcessingFrame = true;
+        imageConverter =
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        ImageUtils.convertYUV420SPToARGB8888(data, previewHeight, previewWidth, rgbBytes); //coz preview frame is landscape
+                    }
+                };
+        postInferenceCallback =
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        camera.addCallbackBuffer(data);
+                        isProcessingFrame = false;
+                    }
+                };
+        processImage();
+        //System.arraycopy(data,0,lastFrame,0,data.length);
 
         //saved = true;
-        camera.addCallbackBuffer(data);
+        //camera.addCallbackBuffer(data);
 
     }
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -290,6 +370,7 @@ public class DetectionActivity extends CameraActivity {
         @Override
         protected Void doInBackground( Void... voids) {
             detector = new ObjectDetectionAPI(getAssets());
+            modelLoaded = true;
             return  null;
         }
         @Override
