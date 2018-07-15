@@ -145,8 +145,6 @@ public class DetectionActivity extends CameraActivity {
                         }
 
                         computingDetection = false;
-                        Toast.makeText(getApplicationContext(),"inference finished in "+lastProcessingTimeMs+"ms",Toast.LENGTH_SHORT).show();
-
                     }
                 });
 
