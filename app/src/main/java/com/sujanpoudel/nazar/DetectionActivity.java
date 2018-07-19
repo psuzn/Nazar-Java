@@ -20,6 +20,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 
@@ -137,10 +138,11 @@ public class DetectionActivity extends CameraActivity {
                         for (final Recognition result : results) {
 
                             final RectF location = result.getRect();
-                            Log.d("Nazar Debug","detectedClass:"+result.getClassId()+" confidence"+result.getConfidence());
                             if (location != null && result.getConfidence() >= minimumConfidence) {
                                 resizeToPreviewMatrix.mapRect(location);
                                 overMgr.drawRectnagle(location);
+                                String text = result.getClassName()+"("+new DecimalFormat("#.##").format(result.getConfidence())+")";
+                                overMgr.drawtText(text,location);
                             }
                         }
 

@@ -7,10 +7,17 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.tensorflow.Graph;
 import org.tensorflow.Operation;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -20,11 +27,11 @@ import java.util.Vector;
 public class ObjectDetectionAPI {
 
     private  String modelFile = "file:///android_asset/frozen_inference_graph.pb";
-    public   String labelFile = "file:///android_asset/mscoco_label_map.pbtxt";
+    public   String labelFile = "file:///android_asset/mscoco_label_map.json";
     public static int inputSize=300; //size of input image (square)
     private  int MAX_RESULTS = 100; //maximum number of output detections
 
-    private Vector<String> labels = new Vector<String>();
+    private JSONObject labels;
 
     private int[] intValues; // buffer to store Color of each pixels in image
     private byte[] byteValues; //buffer to store the pixels in byte array
@@ -45,6 +52,8 @@ public class ObjectDetectionAPI {
     TensorFlowInferenceInterface inferenceInterface;
 
     ObjectDetectionAPI(AssetManager assetManager) {
+
+        labels =  readLabelmapJsonFile(assetManager);
         inputName = "image_tensor" ;
         outputNames = new String[] {"detection_boxes", "detection_scores",
                 "detection_classes", "num_detections"};
@@ -77,6 +86,7 @@ public class ObjectDetectionAPI {
         outputNumDetections = new float[1];
         outputLocations = new float[MAX_RESULTS * 4];
         outputClasses = new float[MAX_RESULTS];
+
     }
     public List<Recognition> detect( final Bitmap bitmap){
         //copy the bitmap to int array buffer
@@ -111,16 +121,43 @@ public class ObjectDetectionAPI {
                             outputLocations[4 * i] * inputSize,
                             outputLocations[4 * i + 3] * inputSize,
                             outputLocations[4 * i + 2] * inputSize);
-            pq.add(
-                    new Recognition((int) outputClasses[i],detectionRect,outputScores[i],"aa"));
+            int c = (int)outputClasses[i];
+            try {
+                pq.add(
+                        new Recognition(c,detectionRect,outputScores[i],labels.get(c+"").toString()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         final ArrayList<Recognition> recognitions = new ArrayList<>();
         for (int i = 0; i < Math.min(pq.size(), MAX_RESULTS); ++i) {
             Recognition a= pq.poll();
             recognitions.add(a);
-            //Log.d("none","class:"+a.getClassId()+", score:"+a.getConfidence() );
+            Log.d("none","class:"+a.getClassName()+", score:"+a.getConfidence() );
         }
         return recognitions;
+    }
+    public JSONObject readLabelmapJsonFile(AssetManager assetManager) {
+
+        try {
+            InputStream is = assetManager.open(labelFile.split("file:///android_asset/")[1]);
+
+            int size = is.available();
+
+            byte[] buffer = new byte[size];
+
+            is.read(buffer);
+
+            is.close();
+
+            String json = new String(buffer, "UTF-8");
+            return new JSONObject(json);
+
+        } catch (IOException | JSONException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
     }
 
 }
