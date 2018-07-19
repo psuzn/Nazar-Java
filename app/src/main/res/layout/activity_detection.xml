@@ -92,7 +92,8 @@
             android:orientation="horizontal"
             android:paddingBottom="10dp"
             android:paddingLeft="20dp"
-            android:paddingRight="20dp">
+            android:paddingRight="20dp"
+            android:visibility="invisible">
 
 
             <ProgressBar
@@ -115,6 +116,7 @@
                 android:background="#00000000"
                 android:fadingEdge="none"
                 android:src="@drawable/ic_camera_capture" />
+
             <ImageButton
                 android:id="@+id/addImage"
                 android:layout_width="wrap_content"
@@ -129,4 +131,14 @@
 
     </RelativeLayout>
 
+    <LinearLayout
+        android:id="@+id/DetectionInfoLinkContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="bottom"
+        android:background="@color/pagerBackground"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp">
+    </LinearLayout>
 </FrameLayout>

@@ -30,6 +30,7 @@ public class ObjectDetectionAPI {
     public   String labelFile = "file:///android_asset/mscoco_label_map.json";
     public static int inputSize=300; //size of input image (square)
     private  int MAX_RESULTS = 100; //maximum number of output detections
+    private  float minimumConfidence = 0.40f;
 
     private JSONObject labels;
 
@@ -132,8 +133,12 @@ public class ObjectDetectionAPI {
         final ArrayList<Recognition> recognitions = new ArrayList<>();
         for (int i = 0; i < Math.min(pq.size(), MAX_RESULTS); ++i) {
             Recognition a= pq.poll();
-            recognitions.add(a);
-            Log.d("none","class:"+a.getClassName()+", score:"+a.getConfidence() );
+            if(a.getConfidence() > minimumConfidence)
+            {
+                recognitions.add(a);
+                Log.d("none","class:"+a.getClassName()+", score:"+a.getConfidence() );
+            }
+
         }
         return recognitions;
     }

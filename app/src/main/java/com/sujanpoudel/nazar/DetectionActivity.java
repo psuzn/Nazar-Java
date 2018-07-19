@@ -11,8 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.support.annotation.UiThread;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.TextureView;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -26,12 +26,12 @@ import java.util.List;
 
 public class DetectionActivity extends CameraActivity {
 
-    int detectionMode = DetectionMode.SingleImage;
+    public  static int detectionMode = DetectionMode.Realtime;
     private float minimumConfidence = 0.5f;
     AlphaAnimation buttonclick = new AlphaAnimation(1f,0.5f);
     SharedPreferences settings;
     ImageView resultOverlay;
-    DetectionOverlayManager overMgr;
+    DetectionResultManager overMgr;
     private ObjectDetectionAPI detector;
     private HandlerThread handlerThread;
     private Handler handler;
@@ -42,7 +42,6 @@ public class DetectionActivity extends CameraActivity {
     private Runnable imageConverter;
 
     private int[] rgbBytes;
-    private byte[] lastFrame;
     private Bitmap onPreviewCallbackBitmap;
     private Bitmap onPreviewCallbackPotraidBitmp;
     private Bitmap inputBitmap;
@@ -120,7 +119,6 @@ public class DetectionActivity extends CameraActivity {
         computingDetection = true;
         onPreviewCallbackBitmap.setPixels(getRgbBytes(),0,previewHeight,0,0,previewHeight,previewWidth);
         readyForNextFrame();
-        overMgr.invalidate();
         onPreviewCallbackPotraidCanvas.drawBitmap(onPreviewCallbackBitmap,MakePotraidMatrix,null);
         final Canvas canvas = new Canvas(inputBitmap);
         inputBitmapCanvas.drawBitmap(onPreviewCallbackPotraidBitmp, resizeToInputMatrix, null);
@@ -138,14 +136,14 @@ public class DetectionActivity extends CameraActivity {
                         for (final Recognition result : results) {
 
                             final RectF location = result.getRect();
-                            if (location != null && result.getConfidence() >= minimumConfidence) {
+                            if (location != null ) {
                                 resizeToPreviewMatrix.mapRect(location);
-                                overMgr.drawRectnagle(location);
-                                String text = result.getClassName()+"("+new DecimalFormat("#.##").format(result.getConfidence())+")";
-                                overMgr.drawtText(text,location);
+//                                overMgr.drawRectnagle(location);
+//                                String text = result.getClassName()+"("+new DecimalFormat("#.##").format(result.getConfidence())+")";
+//                                overMgr.drawtText(text,location);
                             }
                         }
-
+                        overMgr.handleDetectionResults(results);
                         computingDetection = false;
                     }
                 });
@@ -158,6 +156,10 @@ public class DetectionActivity extends CameraActivity {
     }
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
+//        if(overMgr!=null)
+//            overMgr.removeInvisiblelinks();
+
+        overMgr.invalidate(this);
         if(isProcessingFrame)
         {
             Log.d("Nazar Debug","frame dropping");
@@ -172,7 +174,7 @@ public class DetectionActivity extends CameraActivity {
                 new Runnable() {
                     @Override
                     public void run() {
-                        ImageUtils.convertYUV420SPToARGB8888(data, previewHeight, previewWidth, rgbBytes); //coz preview frame is landscape
+                        ImageUtils.convertYUV420SPToARGB8888(data, previewHeight, previewWidth, rgbBytes); //height and width are swapped because  preview frame is landscape
                     }
                 };
         postInferenceCallback =
@@ -189,7 +191,8 @@ public class DetectionActivity extends CameraActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            overMgr = new DetectionOverlayManager( resultOverlay, resultOverlay.getWidth(), resultOverlay.getHeight());
+            overMgr = new DetectionResultManager( resultOverlay, resultOverlay.getWidth(), resultOverlay.getHeight(),
+                                                findViewById(R.id.DetectionInfoLinkContainer));
         }
     }
     private void setUIElements() {
@@ -324,7 +327,6 @@ public class DetectionActivity extends CameraActivity {
         }
     };
     private class ModelLoader extends AsyncTask<Void, Void, Void> {
-
         @Override
         protected Void doInBackground( Void... voids) {
             detector = new ObjectDetectionAPI(getAssets());
