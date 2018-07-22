@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.media.MediaActionSound;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Debug;
@@ -311,6 +312,8 @@ public class DetectionActivity extends CameraActivity {
                     findViewById(R.id.DetectionInfoLinkContainer).setVisibility(View.VISIBLE);
                     findViewById(R.id.capture).setVisibility(View.INVISIBLE);
                     findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
+                    MediaActionSound sound = new MediaActionSound();
+                    sound.play(MediaActionSound.SHUTTER_CLICK);
                 }
             };
         }
