@@ -2,9 +2,7 @@ package com.sujanpoudel.nazar;
 
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Rect;
@@ -13,10 +11,7 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.Manifest;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.TextureView;
@@ -42,6 +37,8 @@ public abstract class CameraActivity extends android.app.Activity
     protected Camera mCamera;
     protected int previewWidth,previewHeight;
     protected  float cameraOrientation = 90;
+    protected Runnable onFocus;
+
     static {
         System.loadLibrary("native-lib");
     }
@@ -298,35 +295,41 @@ public abstract class CameraActivity extends android.app.Activity
     View.OnTouchListener onTapFocusListner =  new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-
-
-            Camera.Parameters parameters = mCamera.getParameters();
-            if (parameters.getMaxNumMeteringAreas() > 0){
-                Rect rect = calculateFocusArea(event.getX(), event.getY());
-
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                List<Camera.Area> meteringAreas = new ArrayList<Camera.Area>();
-                meteringAreas.add(new Camera.Area(rect, 800));
-                parameters.setFocusAreas(meteringAreas);
-
-                mCamera.setParameters(parameters);
-                mCamera.autoFocus(mAutoFocusTakePictureCallback);
-            }else {
-                mCamera.autoFocus(mAutoFocusTakePictureCallback);
-            }
+            setFocusPoint(event.getX(),event.getY());
             return true;
         }
     };
+
+    protected void setFocusPoint(float x,float y){
+        Camera.Parameters parameters = mCamera.getParameters();
+        if (parameters.getMaxNumMeteringAreas() > 0){
+            Rect rect = calculateFocusArea(x,y);
+
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            List<Camera.Area> meteringAreas = new ArrayList<Camera.Area>();
+            meteringAreas.add(new Camera.Area(rect, 800));
+            parameters.setFocusAreas(meteringAreas);
+
+            mCamera.setParameters(parameters);
+            mCamera.autoFocus(mAutoFocusTakePictureCallback);
+        }else {
+            mCamera.autoFocus(mAutoFocusTakePictureCallback);
+        }
+    }
+
     private Camera.AutoFocusCallback mAutoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
         @Override
         public void onAutoFocus(boolean success, Camera camera) {
-            if (success) {
-                // do something...
-                Log.i("tap_to_focus","success!");
-            } else {
-                // do something...
-                Log.i("tap_to_focus","fail!");
-            }
+            if(onFocus !=null)
+                onFocus.run();
+            onFocus = null;
+        if (success) {
+            // do something...
+            Log.i("tap_to_focus","success!");
+        } else {
+            // do something...
+            Log.i("tap_to_focus","fail!");
+        }
         }
     };
     @Override

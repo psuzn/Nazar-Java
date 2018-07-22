@@ -10,9 +10,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import java.text.DecimalFormat;
 
-import android.os.Debug;
 import android.os.SystemClock;
-import android.provider.ContactsContract;
 import android.text.TextPaint;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,12 +21,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.Vector;
 
 public class DetectionResultManager {
     private ImageView imgOverlay;
@@ -47,18 +40,21 @@ public class DetectionResultManager {
         detectionInfoLinkContainer = (LinearLayout) DetectionInfoLinkContainer;
         Bitmap bitmap = Bitmap.createBitmap(overlayWidth, overlayHeight, Bitmap.Config.ARGB_4444);
         canvas =  new Canvas(bitmap);
+
+        //style for rectangle
         rectPaint = new Paint();
         rectPaint.setStrokeWidth(STROKE_WIDTH);
         rectPaint.setColor(Color.BLUE);
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setAntiAlias(true);
 
+        //style for text
         textPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
         textPaint.setColor(Color.BLUE);
         textPaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.NORMAL));
         textPaint.setTextAlign(Paint.Align.LEFT);
         imgOverlay.setImageBitmap(bitmap);
-        imgOverlay.bringToFront();
+        //imgOverlay.bringToFront();
         //startDetectionInfoLinkremovalTimer();
     }
 
@@ -70,6 +66,8 @@ public class DetectionResultManager {
 
     }
     public void handleDetectionResults( List<Recognition> results){
+        if(DetectionActivity.detectionMode ==  DetectionActivity.DetectionMode.realtime)
+            clear(); //clear the boxes each frame
         for ( Recognition r:results ) {
             drawRectnagle(r.getRect());
             String text = r.getClassName()+"("+new DecimalFormat("#.##").format(r.getConfidence())+")";
@@ -103,28 +101,31 @@ public class DetectionResultManager {
         imgOverlay.invalidate();
         removeInvisiblelinks();
         if(lastDetectionResult!=null)
-        for (Recognition r : lastDetectionResult){
-             int index = alreadyExistInView(r.getClassId());
-             if(index<0){ // not instantiated
-                  final RelativeLayout view = (RelativeLayout) LayoutInflater.from(c).inflate(R.layout.detectioninfolinktemplate,null);
-                 view.setId(r.getClassId());
-                 ((TextView)view.getChildAt(0)).setText(r.getClassName());
-                 detectionInfoLinkContainer.addView(view);
-                 ArrayList<Object> tmpList = new ArrayList<>();
-                 tmpList.add(view);
-                 tmpList.add(SystemClock.uptimeMillis());
-                 InstantiatedDetectionInfoLinks.add(tmpList);
-             }
-             else { //view contains the infolink of the current class
-                 ((RelativeLayout)InstantiatedDetectionInfoLinks.get(index).get(0)).setVisibility(View.VISIBLE);
-                 InstantiatedDetectionInfoLinks.get(index).set(1,SystemClock.uptimeMillis());
-             }
+        {
+            detectionInfoLinkContainer.setVisibility(View.VISIBLE);
+            for (Recognition r : lastDetectionResult){
+                int index = alreadyExistInView(r.getClassId());
+                if(index<0){ // not instantiated
+                    final RelativeLayout view = (RelativeLayout) LayoutInflater.from(c).inflate(R.layout.detectioninfolinktemplate,null);
+                    view.setId(r.getClassId());
+                    ((TextView)view.getChildAt(0)).setText(r.getClassName());
+                    detectionInfoLinkContainer.addView(view);
+                    ArrayList<Object> tmpList = new ArrayList<>();
+                    tmpList.add(view);
+                    tmpList.add(SystemClock.uptimeMillis());
+                    InstantiatedDetectionInfoLinks.add(tmpList);
+                }
+                else { //view contains the infolink of the current class
+                    ((RelativeLayout)InstantiatedDetectionInfoLinks.get(index).get(0)).setVisibility(View.VISIBLE);
+                    InstantiatedDetectionInfoLinks.get(index).set(1,SystemClock.uptimeMillis());
+                }
+            }
+            lastDetectionResult = null;
         }
-        lastDetectionResult = null;
+
 
     }
     private  int alreadyExistInView( int classId ) {
-        int index = 0;
         for (int i = 0; i < InstantiatedDetectionInfoLinks.size(); i++) {
             if ( ((RelativeLayout) InstantiatedDetectionInfoLinks.get(i).get(0)).getId() == classId) {
                 return i;
@@ -133,6 +134,8 @@ public class DetectionResultManager {
         return -1;
     }
     public void removeInvisiblelinks(){
+        if(DetectionActivity.detectionMode == DetectionActivity.DetectionMode.singleImage)
+            return;
         for (int i = 0; i < InstantiatedDetectionInfoLinks.size(); i++) {
             long visibleDuration = SystemClock.uptimeMillis () - (long) InstantiatedDetectionInfoLinks.get(i).get(1) ;
             // Log.d();
@@ -143,5 +146,11 @@ public class DetectionResultManager {
             }
         }
     }
+    public void  drawBitmap(Bitmap b){
+        canvas.drawBitmap(b,0,0,null);
+        //imgOverlay.setImageBitmap(b);
+        imgOverlay.invalidate();
+    }
+
 
 }

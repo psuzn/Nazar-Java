@@ -8,25 +8,25 @@ import android.graphics.RectF;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
-import android.support.annotation.UiThread;
 import android.util.Log;
 import android.view.TextureView;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import java.text.DecimalFormat;
 import java.util.List;
 
 
 public class DetectionActivity extends CameraActivity {
 
-    public  static int detectionMode = DetectionMode.Realtime;
+    public  static int detectionMode = DetectionMode.realtime;
     private float minimumConfidence = 0.5f;
     AlphaAnimation buttonclick = new AlphaAnimation(1f,0.5f);
     SharedPreferences settings;
@@ -53,10 +53,11 @@ public class DetectionActivity extends CameraActivity {
     private boolean isProcessingFrame = false;
     private boolean computingDetection = false;
     private boolean modelLoaded = false;
+    private boolean captured = false;
 
     @interface DetectionMode{
-        int SingleImage = 0;
-        int Realtime =1;
+        int singleImage = 0;
+        int realtime =1;
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +67,7 @@ public class DetectionActivity extends CameraActivity {
         resultOverlay = findViewById(R.id.resultOverlay);
         Log.d("Nazar Debug","DetectionActivity activity");
 
+
         //initialize event listeners
         findViewById(R.id.cameraSwitch).setOnClickListener(cameraSwitch);
         findViewById(R.id.capture).setOnClickListener(capture);
@@ -73,6 +75,7 @@ public class DetectionActivity extends CameraActivity {
         findViewById(R.id.realTimeMode).setOnClickListener(realtimeMode);
         ( (CompoundButton) findViewById(R.id.modeSwitch)).setOnCheckedChangeListener(modeSwitch);
         setUIElements(); // make ui elements as defines on settings
+
         handlerThread = new HandlerThread("inference");
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
@@ -122,15 +125,20 @@ public class DetectionActivity extends CameraActivity {
         onPreviewCallbackPotraidCanvas.drawBitmap(onPreviewCallbackBitmap,MakePotraidMatrix,null);
         final Canvas canvas = new Canvas(inputBitmap);
         inputBitmapCanvas.drawBitmap(onPreviewCallbackPotraidBitmp, resizeToInputMatrix, null);
-
+        if(detectionMode == DetectionMode.singleImage){
+            captured = false;
+            overMgr.drawBitmap(onPreviewCallbackPotraidBitmp);
+        }
         runInBackground(
                 new Runnable() {
                     @Override
                     public void run() {
+                        int detectionModeAtBeginnig = detectionMode;
                         final long startTime = SystemClock.uptimeMillis();
-
                         final List<Recognition> results = detector.detect(inputBitmap);
-                        overMgr.clear();
+                        computingDetection = false;
+                        if(detectionModeAtBeginnig != detectionMode)//detectionmode can be changed during inference
+                            return;
                         long lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                         Log.d("Nazar Debug","inference runin "+lastProcessingTimeMs);
                         for (final Recognition result : results) {
@@ -138,33 +146,21 @@ public class DetectionActivity extends CameraActivity {
                             final RectF location = result.getRect();
                             if (location != null ) {
                                 resizeToPreviewMatrix.mapRect(location);
-//                                overMgr.drawRectnagle(location);
-//                                String text = result.getClassName()+"("+new DecimalFormat("#.##").format(result.getConfidence())+")";
-//                                overMgr.drawtText(text,location);
                             }
                         }
                         overMgr.handleDetectionResults(results);
                         computingDetection = false;
                     }
                 });
-
     }
-
     void readyForNextFrame(){
         postInferenceCallback.run();
 
     }
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
-//        if(overMgr!=null)
-//            overMgr.removeInvisiblelinks();
-
         overMgr.invalidate(this);
-        if(isProcessingFrame)
-        {
-            Log.d("Nazar Debug","frame dropping");
-        }
-        if(!modelLoaded)
+        if((detectionMode == DetectionMode.singleImage && !captured ) || !modelLoaded || isProcessingFrame )
         {
             camera.addCallbackBuffer(data);
             return;
@@ -198,16 +194,19 @@ public class DetectionActivity extends CameraActivity {
     private void setUIElements() {
         CompoundButton toggle =  findViewById(R.id.modeSwitch);
         Log.d("Nazar Debug","button"+toggle.isChecked());
-        if( detectionMode == DetectionMode.SingleImage &&  toggle.isChecked()) {
+        if(detectionMode == DetectionMode.singleImage)
+            findViewById(R.id.DetectionInfoLinkContainer).setVisibility(View.GONE);
+
+        if( detectionMode == DetectionMode.singleImage &&  toggle.isChecked()) {
             toggle.toggle();
             Toast.makeText(DetectionActivity.this,"Single Image DetectionActivity Mode",Toast.LENGTH_SHORT).show();
         }
-        else if( detectionMode == DetectionMode.Realtime &&  !toggle.isChecked() )
+        else if( detectionMode == DetectionMode.realtime &&  !toggle.isChecked() )
         {
             toggle.toggle();
-            Toast.makeText(DetectionActivity.this,"Realtime DetectionActivity Mode",Toast.LENGTH_SHORT).show();
+            Toast.makeText(DetectionActivity.this,"realtime DetectionActivity Mode",Toast.LENGTH_SHORT).show();
         }
-        if(detectionMode == DetectionMode.Realtime)
+        if(detectionMode == DetectionMode.realtime)
         {
             findViewById(R.id.capture).setVisibility(View.INVISIBLE);
             findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
@@ -220,21 +219,25 @@ public class DetectionActivity extends CameraActivity {
     }
     void changeDetectionMode(int d){
         CompoundButton toggle =  findViewById(R.id.modeSwitch);
-        if( ( toggle.isChecked() && d  == DetectionMode.SingleImage ) || ( !toggle.isChecked() && d  == DetectionMode.Realtime ) )
+        if( ( toggle.isChecked() && d  == DetectionMode.singleImage) || ( !toggle.isChecked() && d  == DetectionMode.realtime) )
             toggle.toggle();
         if(d == detectionMode)
             return;
+        findViewById(R.id.DetectionInfoLinkContainer).setVisibility(View.GONE);
+        for( int i=0;i< ((LinearLayout)findViewById(R.id.DetectionInfoLinkContainer)).getChildCount();i++)
+            ((LinearLayout)findViewById(R.id.DetectionInfoLinkContainer)).getChildAt(i).setVisibility(View.GONE);
+        overMgr.clear();
+
         String toastMessage ="";
-        if(d == DetectionMode.SingleImage)
+        if(d == DetectionMode.singleImage)
         {
             toastMessage+="Single Image DetectionActivity Mode";
             findViewById(R.id.capture).setVisibility(View.VISIBLE);
             findViewById(R.id.addImage).setVisibility(View.VISIBLE);
-
         }
         else
         {
-            toastMessage+="Realtime DetectionActivity Mode";
+            toastMessage+="realtime DetectionActivity Mode";
             findViewById(R.id.capture).setVisibility(View.INVISIBLE);
             findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
         }
@@ -300,30 +303,39 @@ public class DetectionActivity extends CameraActivity {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
+            setFocusPoint(previewWidth/2,previewHeight/2);
+            onFocus = new Runnable() {
+                @Override
+                public void run() {
+                    captured = true;
+                    findViewById(R.id.DetectionInfoLinkContainer).setVisibility(View.VISIBLE);
+                    findViewById(R.id.capture).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.addImage).setVisibility(View.INVISIBLE);
+                }
+            };
         }
     };
     View.OnClickListener singleImageMode  = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
-            DetectionActivity.this.changeDetectionMode(DetectionMode.SingleImage);
+            DetectionActivity.this.changeDetectionMode(DetectionMode.singleImage);
         }
     };
-
     View.OnClickListener realtimeMode  = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             v.startAnimation(buttonclick);
-            DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
+            DetectionActivity.this.changeDetectionMode(DetectionMode.realtime);
         }
     };
     CompoundButton.OnCheckedChangeListener  modeSwitch = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(!isChecked)
-                DetectionActivity.this.changeDetectionMode(DetectionMode.SingleImage);
+                DetectionActivity.this.changeDetectionMode(DetectionMode.singleImage);
             else
-                DetectionActivity.this.changeDetectionMode(DetectionMode.Realtime);
+                DetectionActivity.this.changeDetectionMode(DetectionMode.realtime);
         }
     };
     private class ModelLoader extends AsyncTask<Void, Void, Void> {
@@ -339,4 +351,18 @@ public class DetectionActivity extends CameraActivity {
             Toast.makeText(getApplicationContext(), "Model Loaded", Toast.LENGTH_SHORT).show();
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if(detectionMode ==  DetectionMode.singleImage && findViewById(R.id.DetectionInfoLinkContainer).getVisibility() == View.VISIBLE)
+        {
+            findViewById(R.id.DetectionInfoLinkContainer).setVisibility(View.GONE);
+            findViewById(R.id.capture).setVisibility(View.VISIBLE);
+            findViewById(R.id.addImage).setVisibility(View.VISIBLE);
+            overMgr.clear();
+        }
+        else
+          super.onBackPressed();
+    }
+
 }

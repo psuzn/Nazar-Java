@@ -70,12 +70,12 @@
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
+            android:layout_height="366dp"
             android:layout_below="@id/header"
-            android:layout_marginTop="20dp"
-            android:paddingBottom="30dp"
             android:layout_gravity="bottom"
-            android:background="@color/pagerBackground">
+            android:layout_marginTop="20dp"
+            android:background="@color/pagerBackground"
+            android:paddingBottom="30dp">
 
             <RelativeLayout
                 android:id="@+id/pageOne"
@@ -95,24 +95,25 @@
                     android:textColor="@android:color/white"
                     android:textSize="30sp"
                     android:textStyle="bold" />
+
                 <TextView
                     android:id="@+id/sliderInfo"
-                    android:layout_below="@id/sliderTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
+                    android:layout_below="@id/sliderTitle"
                     android:layout_marginTop="20dp"
                     android:text="@string/detect_components_at_the_real_time"
                     android:textAlignment="center"
-                    />
+                    android:textColor="@android:color/white" />
+
                 <Button
                     android:id="@+id/startDetection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_below="@id/sliderInfo"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/start_detection"/>
+                    android:text="@string/start_detection" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -134,24 +135,26 @@
                     android:textSize="30sp"
                     android:textStyle="bold"
                     tools:ignore="DuplicateIds" />
+
                 <TextView
                     android:id="@+id/sliderInfo"
-                    android:layout_below="@id/sliderTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
+                    android:layout_below="@id/sliderTitle"
                     android:layout_marginTop="20dp"
                     android:text="@string/identify_the_objects_nearby_you"
                     android:textAlignment="center"
+                    android:textColor="@android:color/white"
                     tools:ignore="DuplicateIds" />
+
                 <Button
                     android:id="@+id/startClassification"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_below="@id/sliderInfo"
                     android:layout_centerHorizontal="true"
                     android:layout_marginTop="20dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/start_classification"/>
+                    android:text="@string/start_classification" />
             </RelativeLayout>
         </android.support.v4.view.ViewPager>
 
