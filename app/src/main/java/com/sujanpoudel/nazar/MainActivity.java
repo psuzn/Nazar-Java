@@ -65,7 +65,7 @@ public class MainActivity extends CameraActivity {
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(adapter);
         pager.addOnPageChangeListener(onPageChangeListner);
-        findViewById(R.id.startClassification).setOnClickListener(onClassificationButtonClick);
+        //findViewById(R.id.startClassification).setOnClickListener(onClassificationButtonClick);
         findViewById(R.id.startDetection).setOnClickListener(onDetectionButtonClick);
 
         //for the buttom radiobuttons
@@ -163,13 +163,13 @@ public class MainActivity extends CameraActivity {
             MainActivity.this.startActivity(myintent);
         }
     };
-    View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            Toast.makeText(MainActivity.this,"ClassificationActivity will be implemented soon",Toast.LENGTH_SHORT).show();
-            colorAnimator.pause();
-            Intent myintent = new Intent(MainActivity.this,ClassificationActivity.class);
-            MainActivity.this.startActivity(myintent);
-        }
-    };
+//    View.OnClickListener onClassificationButtonClick = new View.OnClickListener() {
+//        @Override
+//        public void onClick(View v) {
+//            Toast.makeText(MainActivity.this,"ClassificationActivity will be implemented soon",Toast.LENGTH_SHORT).show();
+//            colorAnimator.pause();
+//            Intent myintent = new Intent(MainActivity.this,ClassificationActivity.class);
+//            MainActivity.this.startActivity(myintent);
+//        }
+//    };
 }

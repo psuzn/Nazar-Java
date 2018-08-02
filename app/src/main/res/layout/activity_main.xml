@@ -127,7 +127,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="@string/classification"
+                    android:text="About us"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
@@ -142,19 +142,12 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@id/sliderTitle"
                     android:layout_marginTop="20dp"
-                    android:text="@string/identify_the_objects_nearby_you"
+                    android:text="An electronic component detection app. \n Allows user to detect electronic components in realtime."
                     android:textAlignment="center"
                     android:textColor="@android:color/white"
                     tools:ignore="DuplicateIds" />
 
-                <Button
-                    android:id="@+id/startClassification"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/sliderInfo"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/start_classification" />
+
             </RelativeLayout>
         </android.support.v4.view.ViewPager>
 
