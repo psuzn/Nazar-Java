@@ -1,6 +1,7 @@
 package com.sujanpoudel.nazar;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,11 +11,14 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import java.text.DecimalFormat;
 
+import android.net.Uri;
 import android.os.SystemClock;
+import android.support.annotation.IntDef;
 import android.text.TextPaint;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -109,6 +113,7 @@ public class DetectionResultManager {
                     final RelativeLayout view = (RelativeLayout) LayoutInflater.from(c).inflate(R.layout.detectioninfolinktemplate,null);
                     view.setId(r.getClassId());
                     ((TextView)view.getChildAt(0)).setText(r.getClassName());
+                    ((Button)view.getChildAt(1)).setOnClickListener(getButtonClickListner(c,r.getClassName()));
                     detectionInfoLinkContainer.addView(view);
                     ArrayList<Object> tmpList = new ArrayList<>();
                     tmpList.add(view);
@@ -123,7 +128,18 @@ public class DetectionResultManager {
             lastDetectionResult = null;
         }
 
+    }
+    View.OnClickListener getButtonClickListner( final Context c,final String className){
 
+        return new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Uri uri = Uri.parse("http://www.google.com/search?q="+className); // missing 'http://' will cause crashed
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                c.getApplicationContext().startActivity(intent);
+            }
+        };
     }
     private  int alreadyExistInView( int classId ) {
         for (int i = 0; i < InstantiatedDetectionInfoLinks.size(); i++) {

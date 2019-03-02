@@ -160,7 +160,8 @@ public class DetectionActivity extends CameraActivity {
     }
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
-        overMgr.invalidate(this);
+        if(overMgr!=null)
+            overMgr.invalidate(this);
         if((detectionMode == DetectionMode.singleImage && !captured ) || !modelLoaded || isProcessingFrame )
         {
             camera.addCallbackBuffer(data);
